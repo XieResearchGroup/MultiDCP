@@ -21,17 +21,12 @@ import warnings
 from collections import defaultdict
 warnings.filterwarnings("ignore")
 
-USE_WANDB = False
-PRECISION_DEGREE = [10, 20, 50, 100]
-if USE_WANDB:
-    wandb.init(project="MultiDCP_AE_loss")
-    wandb.watch(model, log="all")
-else:
-    os.environ["WANDB_MODE"] = "dryrun"
 
 # check cuda
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-print("Use GPU: %s" % torch.cuda.is_available())
+
+
+  
+#print("Use GPU: %s" % torch.cuda.is_available())
 
 def initialize_model_registry():
     model_param_registry = defaultdict(lambda: None)
@@ -329,6 +324,7 @@ if __name__ == '__main__':
     start_time = datetime.now()
 
     parser = argparse.ArgumentParser(description='MultiDCP PreTraining')
+    parser.add_argument('--exp',type=str, default='',help='name of the experiment')
     parser.add_argument('--drug_file')
     parser.add_argument('--gene_file')
     parser.add_argument('--train_file')
@@ -347,9 +343,9 @@ if __name__ == '__main__':
     parser.add_argument('--dropout', type=float)
     parser.add_argument('--linear_encoder_flag', dest = 'linear_encoder_flag', action='store_true', default=False,
                         help = 'whether the cell embedding layer only have linear layers')
-
+    parser.add_argument('--device', type=int, default=0, help='which gpu to use if any (default: 0)')
     args = parser.parse_args()
-
+    device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
     all_cells = list(pickle.load(open(args.all_cells, 'rb')))
     DATA_FILTER = {"time": "24H", "pert_id": ['BRD-U41416256', 'BRD-U60236422','BRD-U01690642','BRD-U08759356','BRD-U25771771', 'BRD-U33728988', 'BRD-U37049823',
                 'BRD-U44618005', 'BRD-U44700465','BRD-U51951544', 'BRD-U66370498','BRD-U68942961', 'BRD-U73238814',
@@ -383,6 +379,15 @@ if __name__ == '__main__':
     model.init_weights(pretrained = False)
     model.to(device)
     model = model.double()     
+
+
+    USE_WANDB = True
+    PRECISION_DEGREE = [10, 20, 50, 100]
+    if USE_WANDB:
+        wandb.init(project="MultiDCP_AE_loss")
+        wandb.watch(model, log="all")
+    else:
+        os.environ["WANDB_MODE"] = "dryrun"
 
     # training
     metrics_summary = defaultdict(
