@@ -9,10 +9,6 @@ from torch.utils.data import random_split, DataLoader, Dataset
 import pytorch_lightning as pl
 warnings.filterwarnings("ignore")
 
-seed = 343
-np.random.seed(seed=seed)
-random.seed(a=seed)
-torch.manual_seed(seed)
 
 class AEDataDataset(Dataset):
 

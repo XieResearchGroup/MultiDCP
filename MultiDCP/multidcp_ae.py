@@ -17,6 +17,7 @@ import pdb
 import pickle
 from loss_utils import apply_NodeHomophily
 from tqdm import tqdm
+import random
 import warnings
 from collections import defaultdict
 warnings.filterwarnings("ignore")
@@ -152,7 +153,7 @@ def report_final_results(metrics_summary):
 
 def model_training(args, model, data, ae_data, metrics_summary):
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0002)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     best_dev_pearson = float("-inf")
 
     for epoch in range(args.max_epoch):
@@ -324,28 +325,46 @@ if __name__ == '__main__':
     start_time = datetime.now()
 
     parser = argparse.ArgumentParser(description='MultiDCP PreTraining')
-    parser.add_argument('--exp',type=str, default='',help='name of the experiment')
-    parser.add_argument('--drug_file')
-    parser.add_argument('--gene_file')
-    parser.add_argument('--train_file')
-    parser.add_argument('--dev_file')
-    parser.add_argument('--test_file')
-    parser.add_argument('--batch_size', type = int)
-    parser.add_argument('--ae_input_file')
-    parser.add_argument('--ae_label_file')
-    parser.add_argument('--cell_ge_file', help='the file which used to map cell line to gene expression file')
+    parser.add_argument('--expname', type= str, default='')
+    parser.add_argument('--device',type=int, default=0)
+    parser.add_argument('--drug_file',type = str, default="MultiDCP_data/data/all_drugs_l1000.csv")
+    #parser.add_argument('--drug_idx_train',type=str, default= "/raid/home/yoyowu/MultiDCP/MultiDCP/utils/train_idx.csv")
+    #parser.add_argument('--drug_idx_val',type=str, default= "/raid/home/yoyowu/MultiDCP/MultiDCP/utils/val_idx.csv")
+    #parser.add_argument('--drug_idx_test',type=str, default= "/raid/home/yoyowu/MultiDCP/MultiDCP/utils/test_idx.csv")
+    parser.add_argument('--lr',type=float, default=2e-4)
+   
+    parser.add_argument('--seed', type=int, default=343)
+    parser.add_argument('--gene_file', type = str, default = "MultiDCP_data/data/gene_vector.csv")
 
-    parser.add_argument('--max_epoch', type = int)
-    parser.add_argument('--predicted_result_for_testset', help = "the file directory to save the predicted test dataframe")
-    parser.add_argument('--hidden_repr_result_for_testset', help = "the file directory to save the test data hidden representation dataframe")
-    parser.add_argument('--all_cells')
+    #parser.add_argument('--cell_file', type= str, default= "MultiDCP_data/data/all_perturbed.csv")    
+    parser.add_argument('--train_file', type= str, default= "MultiDCP_data/data/pert_transcriptom/signature_train_cell_1.csv")
+    parser.add_argument('--dev_file', type=str, default ="MultiDCP_data/data/pert_transcriptom/signature_dev_cell_1.csv" )
+    parser.add_argument('--test_file', type=str, default="MultiDCP_data/data/pert_transcriptom/signature_test_cell_1.csv")
+    parser.add_argument('--batch_size', type = int, default=64)
+    parser.add_argument('--ae_input_file',type=str, default= "MultiDCP_data/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4" )
+    parser.add_argument('--ae_label_file', type=str, default="MultiDCP_data/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4")
+    parser.add_argument('--cell_ge_file',type=str,default="MultiDCP_data/data/adjusted_ccle_tcga_ad_tpm_log2.csv",
+                        help='the file which used to map cell line to gene expression file', )
 
-    parser.add_argument('--dropout', type=float)
+    parser.add_argument('--max_epoch', type = int, default=500)
+    parser.add_argument('--predicted_result_for_testset',  type=str, default="MultiDCP_data/data/teacher_student/teach_stu_perturbedGX.csv")
+    parser.add_argument('--hidden_repr_result_for_testset', type=str, default = "MultiDCP_data/data/teacher_student/teach_stu_perturbedGX_hidden.csv" ,
+                        help = "the file directory to save the test data hidden representation dataframe")
+    parser.add_argument('--all_cells', type=str, default= "MultiDCP_data/data/ccle_tcga_ad_cells.p")
+
+    parser.add_argument('--dropout', type=float, default=0.1)
     parser.add_argument('--linear_encoder_flag', dest = 'linear_encoder_flag', action='store_true', default=False,
                         help = 'whether the cell embedding layer only have linear layers')
-    parser.add_argument('--device', type=int, default=0, help='which gpu to use if any (default: 0)')
+
     args = parser.parse_args()
+
+    seed = args.seed
+    np.random.seed(seed=seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
+
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
+   
     all_cells = list(pickle.load(open(args.all_cells, 'rb')))
     DATA_FILTER = {"time": "24H", "pert_id": ['BRD-U41416256', 'BRD-U60236422','BRD-U01690642','BRD-U08759356','BRD-U25771771', 'BRD-U33728988', 'BRD-U37049823',
                 'BRD-U44618005', 'BRD-U44700465','BRD-U51951544', 'BRD-U66370498','BRD-U68942961', 'BRD-U73238814',
