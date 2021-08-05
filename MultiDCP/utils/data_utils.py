@@ -5,6 +5,7 @@ from molecules import Molecules
 import pdb
 import pandas as pd
 import warnings
+from sklearn.model_selection import train_test_split, StratifiedKFold
 warnings.filterwarnings("ignore")
 
 problem_set = {'12-Distearoyllecithin,trt_cp,1119_TCX,10.0 um',
@@ -370,6 +371,12 @@ def transfrom_to_tensor(feature_train, label_train, feature_dev, label_dev, feat
 #     test_label_regression = torch.from_numpy(label_test).to(device)
 #     return train_feature, dev_feature, test_feature, train_label_regression, dev_label_regression, \
 #            test_label_regression, use_pert_type, use_cell_id, use_pert_idose
+
+def triple_data(data_file,seed):
+    data_df = pd.read_csv(data_file,index_col=0)
+    
+    train_data_df, test_data_df = train_test_split(data_df, test_size=0.1,random_state=seed)
+    return data_df,test_data_df
 
 
 if __name__ == '__main__':

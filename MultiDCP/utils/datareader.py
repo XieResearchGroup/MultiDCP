@@ -1,11 +1,12 @@
 import numpy as np
 import random
+from numpy.lib import utils
 import torch
 import data_utils
 import pandas as pd
 import pdb
 import warnings
-from torch.utils.data import random_split, DataLoader, Dataset
+from torch.utils.data import random_split, DataLoader, Dataset,TensorDataset
 import pytorch_lightning as pl
 warnings.filterwarnings("ignore")
 
@@ -223,8 +224,44 @@ class AEDataReader(object):
                 excerpt = slice(start_idx, start_idx + batch_size)
             yield feature[excerpt], label[excerpt], torch.Tensor([*range(len(feature[excerpt]))]).long()
 
+
+
+
+
+
+
+class Triple_DataLoader(pl.LightningDataModule):
+
+    def __init__(self, data_file,device,args):
+        super(Triple_DataLoader, self).__init__()
+  
+        self.train_df,self.test_df = data_utils.triple_data(data_file,args.seed)
+        self.batch_size = args.batch_size
+        self.device = device
+
+    def prepare_data(self):
+        '''
+        Use this method to do things that might write to disk or that need to be \
+            done only from a single GPU in distributed settings.
+        how to download(), tokenize, the processed file need to be saved to disk to be accessed by other processes
+        prepare_data is called from a single GPU. Do not use it to assign state (self.x = y).
+        '''
+        pass
+
+    def setup(self, stage = None):
+        self.train_data = TensorDataset(torch.from_numpy(self.train_df.values.astype('float64')))
+        self.test_data = TensorDataset(torch.from_numpy(self.test_df.values.astype('float64')) )
+      #  dtype=np.float64
+    def train_dataloader(self):
+        return DataLoader(self.train_data, batch_size = self.batch_size, shuffle = True,drop_last=True)
+    
+    def test_dataloader(self):
+        return DataLoader(self.test_data, batch_size = self.batch_size)
+
+
 if __name__ == '__main__':
+
     data_filter = {"time": "24H", "pert_id": ['BRD-U41416256', 'BRD-U60236422'], "pert_type": ["trt_cp"],
               "cell_id": ["A375", "HT29", "MCF7", "PC3", "HA1E", "YAPC", "HELA"],
               "pert_idose": ["0.04 um", "0.04 um", "0.12 um", "0.37 um", "1.11 um", "3.33 um", "10.0 um"]}
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+ 
