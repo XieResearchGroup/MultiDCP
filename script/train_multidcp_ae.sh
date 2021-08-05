@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 
-CUDA_VISIBLE_DEVICES=0 python ../MultiDCP/multidcp_ae.py --drug_file "../MultiDCP/data/all_drugs_l1000.csv" \
---gene_file "../MultiDCP/data/gene_vector.csv"  --train_file "../MultiDCP/data/pert_transcriptom/signature_train_cell_1.csv" \
---dev_file "../MultiDCP/data/pert_transcriptom/signature_dev_cell_1.csv" --test_file "../MultiDCP/data/pert_transcriptom/signature_test_cell_1.csv" \
+
+
+python /raid/home/yoyowu/MultiDCP/MultiDCP/multidcp_ae.py --device 0 \
+--exp '0613_base_cellSplit' \
+--drug_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/all_drugs_l1000.csv" \
+--gene_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/gene_vector.csv"  --train_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/pert_transcriptom/signature_train_cell_1.csv" \
+--dev_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/pert_transcriptom/signature_dev_cell_1.csv" --test_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/pert_transcriptom/signature_test_cell_1.csv" \
 --dropout 0.3 --batch_size 64 --max_epoch 500 \
---ae_input_file "../MultiDCP/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4" \
---ae_label_file "../MultiDCP/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4" \
---predicted_result_for_testset "../MultiDCP/data/teacher_student/teach_stu_perturbedGX.csv" \
---hidden_repr_result_for_testset "../MultiDCP/data/teacher_student/teach_stu_perturbedGX_hidden.csv" \
---cell_ge_file "../MultiDCP/data/adjusted_ccle_tcga_ad_tpm_log2.csv" \
---all_cells "../MultiDCP/data/ccle_tcga_ad_cells.p" \
+--ae_input_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4" \
+--ae_label_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4" \
+--predicted_result_for_testset "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/teacher_student/teach_stu_perturbedGX.csv" \
+--hidden_repr_result_for_testset "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/teacher_student/teach_stu_perturbedGX_hidden.csv" \
+--cell_ge_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/adjusted_ccle_tcga_ad_tpm_log2.csv" \
+--all_cells "/raid/home/yoyowu/MultiDCP/MultiDCP_data//data/ccle_tcga_ad_cells.p" \
+> MultiDCP/outlogs/0612_3.log 2>&1 &
+echo "done"
 # > ../MultiDCP/output/cellwise_output_ran5.txt
