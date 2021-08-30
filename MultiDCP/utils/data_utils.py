@@ -122,8 +122,8 @@ def read_data(input_file, filter):
         for line in f:
             line = line.strip().split(',')
             # assert len(line) == 983 or len(line) == 7 or len(line) == 6, "Wrong format"
-            if filter["time"] in line[0] and line[1] not in filter['pert_id'] and line[2] in filter["pert_type"] \
-                    and line[3] in filter['cell_id'] and line[4] in filter["pert_idose"]: # filter["time"] in line[0] and 
+            if filter["time"] in line[0]  and line[2] in filter["pert_type"] \
+                    and line[4] in filter["pert_idose"]: # filter["time"] in line[0] and 
                 ft = ','.join(line[1:5])
                 lb = [float(i) for i in line[5:]]
                 if ft in data.keys():
@@ -170,10 +170,10 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
         pert_type_dict = dict(zip(pert_type_set, list(range(len(pert_type_set)))))
         final_pert_type_feature = []
         use_pert_type = True
-    if len(cell_id_set) > 1:
-        cell_id_dict = dict(zip(cell_id_set, list(range(len(cell_id_set)))))
-        final_cell_id_feature = []
-        use_cell_id = True
+    #if len(cell_id_set) > 1:
+    cell_id_dict = dict(zip(cell_id_set, list(range(len(cell_id_set)))))
+    final_cell_id_feature = []
+    use_cell_id = True
     if len(pert_idose_set) > 1:
         pert_idose_dict = dict(zip(pert_idose_set, list(range(len(pert_idose_set)))))
         final_pert_idose_feature = []

@@ -30,12 +30,12 @@ class AEDataLoader(pl.LightningDataModule):
     def __init__(self, device, args):
         super(AEDataLoader, self).__init__()
         self.batch_size = args.batch_size
-        self.train_data_file = args.ae_input_file + '_train.csv'
-        self.dev_data_file = args.ae_input_file + '_dev.csv'
-        self.test_data_file = args.ae_input_file + '_test.csv'
-        self.train_label_file = args.ae_label_file + '_train.csv'
-        self.dev_label_file = args.ae_label_file + '_dev.csv'
-        self.test_label_file = args.ae_label_file + '_test.csv'
+        self.train_data_file = args.ae_input_file 
+        # self.dev_data_file = args.ae_input_file + '_dev.csv'
+        # self.test_data_file = args.ae_input_file + '_test.csv'
+        self.train_label_file = args.ae_label_file 
+        # self.dev_label_file = args.ae_label_file + '_dev.csv'
+        # self.test_label_file = args.ae_label_file + '_test.csv'
         self.device = device
 
     def prepare_data(self):
@@ -49,8 +49,8 @@ class AEDataLoader(pl.LightningDataModule):
 
     def setup(self, stage = None):
         self.train_data = AEDataDataset(self.train_data_file, self.train_label_file, self.device)
-        self.dev_data = AEDataDataset(self.dev_data_file, self.dev_label_file, self.device)
-        self.test_data = AEDataDataset(self.test_data_file, self.test_label_file, self.device)
+        # self.dev_data = AEDataDataset(self.dev_data_file, self.dev_label_file, self.device)
+        # self.test_data = AEDataDataset(self.test_data_file, self.test_label_file, self.device)
     
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size = self.batch_size, shuffle = True)
