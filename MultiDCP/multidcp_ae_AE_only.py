@@ -108,12 +108,12 @@ def test_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, metric
 
 def report_final_results(metrics_summary):
     best_dev_epoch = np.argmax(metrics_summary['pearson_list_perturbed_dev'])
-    # print("Epoch %d got best AE Pearson's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_ae_dev'][best_dev_epoch]))
-    # print("Epoch %d got AE Spearman's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_ae_dev'][best_dev_epoch]))
-    # print("Epoch %d got AE RMSE on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['rmse_list_ae_dev'][best_dev_epoch]))
-    # print("Epoch %d got AE P@100 POS and NEG on dev set: %.4f, %.4f" % (best_dev_epoch + 1,
-    #                                                                 metrics_summary['precisionk_list_ae_dev'][best_dev_epoch][-1][0],
-    #                                                                 metrics_summary['precisionk_list_ae_dev'][best_dev_epoch][-1][1]))
+    print("Epoch %d got best AE Pearson's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_ae_dev'][best_dev_epoch]))
+    print("Epoch %d got AE Spearman's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_ae_dev'][best_dev_epoch]))
+    print("Epoch %d got AE RMSE on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['rmse_list_ae_dev'][best_dev_epoch]))
+    print("Epoch %d got AE P@100 POS and NEG on dev set: %.4f, %.4f" % (best_dev_epoch + 1,
+                                                                    metrics_summary['precisionk_list_ae_dev'][best_dev_epoch][-1][0],
+                                                                    metrics_summary['precisionk_list_ae_dev'][best_dev_epoch][-1][1]))
 
     print("Epoch %d got best Perturbed Pearson's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_perturbed_dev'][best_dev_epoch]))
     print("Epoch %d got Perturbed Spearman's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_perturbed_dev'][best_dev_epoch]))
@@ -122,12 +122,12 @@ def report_final_results(metrics_summary):
                                                                     metrics_summary['precisionk_list_perturbed_dev'][best_dev_epoch][-1][0],
                                                                     metrics_summary['precisionk_list_perturbed_dev'][best_dev_epoch][-1][1]))
 
-    # print("Epoch %d got AE Pearson's correlation on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_ae_test'][best_dev_epoch]))
-    # print("Epoch %d got AE Spearman's correlation on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_ae_test'][best_dev_epoch]))
-    # print("Epoch %d got AE RMSE on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['rmse_list_ae_test'][best_dev_epoch]))
-    # print("Epoch %d got AE P@100 POS and NEG on test set w.r.t dev set: %.4f, %.4f" % (best_dev_epoch + 1,
-    #                                                                 metrics_summary['precisionk_list_ae_test'][best_dev_epoch][-1][0],
-    #                                                                 metrics_summary['precisionk_list_ae_test'][best_dev_epoch][-1][1]))
+    print("Epoch %d got AE Pearson's correlation on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_ae_test'][best_dev_epoch]))
+    print("Epoch %d got AE Spearman's correlation on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_ae_test'][best_dev_epoch]))
+    print("Epoch %d got AE RMSE on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['rmse_list_ae_test'][best_dev_epoch]))
+    print("Epoch %d got AE P@100 POS and NEG on test set w.r.t dev set: %.4f, %.4f" % (best_dev_epoch + 1,
+                                                                    metrics_summary['precisionk_list_ae_test'][best_dev_epoch][-1][0],
+                                                                    metrics_summary['precisionk_list_ae_test'][best_dev_epoch][-1][1]))
 
     print("Epoch %d got Perturbed Pearson's correlation on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_perturbed_test'][best_dev_epoch]))
     print("Epoch %d got Perturbed Spearman's correlation on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_perturbed_test'][best_dev_epoch]))
@@ -137,12 +137,12 @@ def report_final_results(metrics_summary):
                                                                     metrics_summary['precisionk_list_perturbed_test'][best_dev_epoch][-1][1]))
 
     best_test_epoch = np.argmax(metrics_summary['pearson_list_perturbed_test'])
-    # print("Epoch %d got AE best Pearson's correlation on test set: %.4f" % (best_test_epoch + 1, metrics_summary['pearson_list_ae_test'][best_test_epoch]))
-    # print("Epoch %d got AE Spearman's correlation on test set: %.4f" % (best_test_epoch + 1, metrics_summary['spearman_list_ae_test'][best_test_epoch]))
-    # print("Epoch %d got AE RMSE on test set: %.4f" % (best_test_epoch + 1, metrics_summary['rmse_list_ae_test'][best_test_epoch]))
-    # print("Epoch %d got AE P@100 POS and NEG on test set: %.4f, %.4f" % (best_test_epoch + 1,
-    #                                                                 metrics_summary['precisionk_list_ae_test'][best_test_epoch][-1][0],
-    #                                                                 metrics_summary['precisionk_list_ae_test'][best_test_epoch][-1][1]))
+    print("Epoch %d got AE best Pearson's correlation on test set: %.4f" % (best_test_epoch + 1, metrics_summary['pearson_list_ae_test'][best_test_epoch]))
+    print("Epoch %d got AE Spearman's correlation on test set: %.4f" % (best_test_epoch + 1, metrics_summary['spearman_list_ae_test'][best_test_epoch]))
+    print("Epoch %d got AE RMSE on test set: %.4f" % (best_test_epoch + 1, metrics_summary['rmse_list_ae_test'][best_test_epoch]))
+    print("Epoch %d got AE P@100 POS and NEG on test set: %.4f, %.4f" % (best_test_epoch + 1,
+                                                                    metrics_summary['precisionk_list_ae_test'][best_test_epoch][-1][0],
+                                                                    metrics_summary['precisionk_list_ae_test'][best_test_epoch][-1][1]))
 
     print("Epoch %d got Perturbed best Pearson's correlation on test set: %.4f" % (best_test_epoch + 1, metrics_summary['pearson_list_perturbed_test'][best_test_epoch]))
     print("Epoch %d got Perturbed Spearman's correlation on test set: %.4f" % (best_test_epoch + 1, metrics_summary['spearman_list_perturbed_test'][best_test_epoch]))
@@ -176,9 +176,9 @@ def model_training(args, model, data, ae_data, metrics_summary):
 
         print('AE Train loss:')
         print(epoch_loss/(i+1))
-        if USE_WANDB:
-            wandb.log({'AE Train loss': epoch_loss/(i+1)}, step = epoch)
-
+        # if USE_WANDB:
+        #     wandb.log({'AE Train loss': epoch_loss/(i+1)}, step = epoch)
+    torch.save(model.multidcp.encoder.state_dict(),'trained_encoder_og_0830.pt')
         # model.eval()
         # epoch_loss = 0
         # lb_np = np.empty([0, 978])
@@ -195,60 +195,60 @@ def model_training(args, model, data, ae_data, metrics_summary):
         #                         epoch = epoch, metrics_summary = metrics_summary,
         #                         job = 'ae')
 
-        epoch_loss = 0
-        for i, (ft, lb, _) in enumerate(data.train_dataloader()):
-            drug = ft['drug']
-            mask = ft['mask']
-            cell_feature = ft['cell_id']
-            pert_idose = ft['pert_idose']
-            optimizer.zero_grad()
-            predict, cell_hidden_ = model(input_cell_gex=cell_feature, input_drug = drug, 
-                                        input_gene = data.gene, mask = mask,
-                                        input_pert_idose = pert_idose, 
-                                        job_id = 'perturbed', epoch = epoch)
-            loss_t = model.loss(lb, predict)
-            loss_t.backward()
-            optimizer.step()
-            if i == 1:
-                print('__________________________pertubed input__________________________')
-                print(cell_feature)
-                print('__________________________pertubed hidden__________________________')
-                print(cell_hidden_)
-                print('__________________________pertubed predicts__________________________')
-                print(cell_hidden_)
-            epoch_loss += loss_t.item()
-        print('Perturbed gene expression profile Train loss:')
-        print(epoch_loss/(i+1))
-        if USE_WANDB:
-            wandb.log({'Perturbed gene expression profile Train loss': epoch_loss/(i+1)}, step = epoch)
+        # epoch_loss = 0
+        # for i, (ft, lb, _) in enumerate(data.train_dataloader()):
+        #     drug = ft['drug']
+        #     mask = ft['mask']
+        #     cell_feature = ft['cell_id']
+        #     pert_idose = ft['pert_idose']
+        #     optimizer.zero_grad()
+        #     predict, cell_hidden_ = model(input_cell_gex=cell_feature, input_drug = drug, 
+        #                                 input_gene = data.gene, mask = mask,
+        #                                 input_pert_idose = pert_idose, 
+        #                                 job_id = 'perturbed', epoch = epoch)
+        #     loss_t = model.loss(lb, predict)
+        #     loss_t.backward()
+        #     optimizer.step()
+        #     if i == 1:
+        #         print('__________________________pertubed input__________________________')
+        #         print(cell_feature)
+        #         print('__________________________pertubed hidden__________________________')
+        #         print(cell_hidden_)
+        #         print('__________________________pertubed predicts__________________________')
+        #         print(cell_hidden_)
+        #     epoch_loss += loss_t.item()
+        # print('Perturbed gene expression profile Train loss:')
+        # print(epoch_loss/(i+1))
+        # if USE_WANDB:
+        #     wandb.log({'Perturbed gene expression profile Train loss': epoch_loss/(i+1)}, step = epoch)
 
-        model.eval()
-        epoch_loss = 0
-        lb_np = np.empty([0, 978])
-        predict_np = np.empty([0, 978])
-        with torch.no_grad():
-            for i, (ft, lb, _) in enumerate(data.val_dataloader()):
-                drug = ft['drug']
-                mask = ft['mask']
-                cell_feature = ft['cell_id']
-                pert_idose = ft['pert_idose']
-                predict, _ = model(input_cell_gex=cell_feature, input_drug = drug, 
-                                input_gene = data.gene, mask = mask,
-                                input_pert_idose = pert_idose, 
-                                job_id = 'perturbed', epoch = epoch)
-                loss = model.loss(lb, predict)
-                epoch_loss += loss.item()
-                lb_np = np.concatenate((lb_np, lb.cpu().numpy()), axis=0)
-                predict_np = np.concatenate((predict_np, predict.cpu().numpy()), axis=0)
-            validation_epoch_end(epoch_loss = epoch_loss, lb_np = lb_np, 
-                                predict_np = predict_np, steps_per_epoch = i+1, 
-                                epoch = epoch, metrics_summary = metrics_summary,
-                                job = 'perturbed')
+        # model.eval()
+        # epoch_loss = 0
+        # lb_np = np.empty([0, 978])
+        # predict_np = np.empty([0, 978])
+        # with torch.no_grad():
+        #     for i, (ft, lb, _) in enumerate(data.val_dataloader()):
+        #         drug = ft['drug']
+        #         mask = ft['mask']
+        #         cell_feature = ft['cell_id']
+        #         pert_idose = ft['pert_idose']
+        #         predict, _ = model(input_cell_gex=cell_feature, input_drug = drug, 
+        #                         input_gene = data.gene, mask = mask,
+        #                         input_pert_idose = pert_idose, 
+        #                         job_id = 'perturbed', epoch = epoch)
+        #         loss = model.loss(lb, predict)
+        #         epoch_loss += loss.item()
+        #         lb_np = np.concatenate((lb_np, lb.cpu().numpy()), axis=0)
+        #         predict_np = np.concatenate((predict_np, predict.cpu().numpy()), axis=0)
+        #     validation_epoch_end(epoch_loss = epoch_loss, lb_np = lb_np, 
+        #                         predict_np = predict_np, steps_per_epoch = i+1, 
+        #                         epoch = epoch, metrics_summary = metrics_summary,
+        #                         job = 'perturbed')
 
-            if best_dev_pearson < metrics_summary['pearson_list_perturbed_dev'][-1] or epoch == 1:
-                # data_save = True
-                best_dev_pearson = metrics_summary['pearson_list_perturbed_dev'][-1]
-                torch.save(model.state_dict(), 'best_multidcp_ae_model_1.pt')
+        #     if best_dev_pearson < metrics_summary['pearson_list_perturbed_dev'][-1] or epoch == 1:
+        #         # data_save = True
+        #         best_dev_pearson = metrics_summary['pearson_list_perturbed_dev'][-1]
+        #         torch.save(model.state_dict(), 'best_multidcp_ae_model_1.pt')
         # if not data_save or (epoch < 400 and epoch != 1):
         #     continue
         # epoch_loss = 0
@@ -264,61 +264,61 @@ def model_training(args, model, data, ae_data, metrics_summary):
         #         predict_np = np.concatenate((predict_np, predict.cpu().numpy()), axis=0)
         #         hidden_np = np.concatenate((hidden_np, hidden.cpu().numpy()), axis=0)
 
-            if data_save:
-                test_ae_label_file = pd.read_csv(args.ae_label_file + '_test.csv', index_col=0)
-                hidden_df = pd.DataFrame(hidden_np, index = list(test_ae_label_file.index), columns = [x for x in range(50)])
-                print('++++++++++++++++++++++++++++Write hidden state out++++++++++++++++++++++++++++++++')
-                hidden_df.to_csv(args.hidden_repr_result_for_testset)
+            # if data_save:
+            #     test_ae_label_file = pd.read_csv(args.ae_label_file + '_test.csv', index_col=0)
+            #     hidden_df = pd.DataFrame(hidden_np, index = list(test_ae_label_file.index), columns = [x for x in range(50)])
+            #     print('++++++++++++++++++++++++++++Write hidden state out++++++++++++++++++++++++++++++++')
+            #     hidden_df.to_csv(args.hidden_repr_result_for_testset)
 
             # test_epoch_end(epoch_loss = epoch_loss, lb_np = lb_np, 
             #                     predict_np = predict_np, steps_per_epoch = i+1, 
             #                     epoch = epoch, metrics_summary = metrics_summary,
             #                     job = 'ae')
 
-        epoch_loss = 0
-        lb_np_ls = []
-        predict_np_ls = []
-        hidden_np_ls = []
-        with torch.no_grad():
-            for i, (ft, lb, _) in enumerate(tqdm(data.test_dataloader())):
-                drug = ft['drug']
-                mask = ft['mask']
-                cell_feature = ft['cell_id']
-                pert_idose = ft['pert_idose']
-                predict, cells_hidden_repr = model(input_cell_gex=cell_feature, input_drug = drug, 
-                                                input_gene = data.gene, mask = mask,
-                                                input_pert_idose = pert_idose, job_id = 'perturbed')
-                loss = model.loss(lb, predict)
-                epoch_loss += loss.item()
-                lb_np_ls.append(lb.cpu().numpy()) 
-                predict_np_ls.append(predict.cpu().numpy()) 
-                hidden_np_ls.append(cells_hidden_repr.cpu().numpy()) 
+        # epoch_loss = 0
+        # lb_np_ls = []
+        # predict_np_ls = []
+        # hidden_np_ls = []
+        # with torch.no_grad():
+        #     for i, (ft, lb, _) in enumerate(tqdm(data.test_dataloader())):
+        #         drug = ft['drug']
+        #         mask = ft['mask']
+        #         cell_feature = ft['cell_id']
+        #         pert_idose = ft['pert_idose']
+        #         predict, cells_hidden_repr = model(input_cell_gex=cell_feature, input_drug = drug, 
+        #                                         input_gene = data.gene, mask = mask,
+        #                                         input_pert_idose = pert_idose, job_id = 'perturbed')
+        #         loss = model.loss(lb, predict)
+        #         epoch_loss += loss.item()
+        #         lb_np_ls.append(lb.cpu().numpy()) 
+        #         predict_np_ls.append(predict.cpu().numpy()) 
+        #         hidden_np_ls.append(cells_hidden_repr.cpu().numpy()) 
 
-            lb_np = np.concatenate(lb_np_ls, axis = 0)
-            predict_np = np.concatenate(predict_np_ls, axis = 0)
-            hidden_np = np.concatenate(hidden_np_ls, axis = 0)
-            if data_save:
-                sorted_test_input = pd.read_csv(args.test_file).sort_values(['pert_id', 'pert_type', 'cell_feature', 'pert_idose'])
-                genes_cols = sorted_test_input.columns[5:]
-                assert sorted_test_input.shape[0] == predict_np.shape[0]
-                predict_df = pd.DataFrame(predict_np, index = sorted_test_input.index, columns = genes_cols)
-                ground_truth_df = pd.DataFrame(lb_np, index = sorted_test_input.index, columns = genes_cols)
-                result_df = pd.concat([sorted_test_input.iloc[:, :5], predict_df], axis = 1)
-                ground_truth_df = pd.concat([sorted_test_input.iloc[:,:5], ground_truth_df], axis = 1)
+        #     lb_np = np.concatenate(lb_np_ls, axis = 0)
+        #     predict_np = np.concatenate(predict_np_ls, axis = 0)
+        #     hidden_np = np.concatenate(hidden_np_ls, axis = 0)
+        #     if data_save:
+        #         sorted_test_input = pd.read_csv(args.test_file).sort_values(['pert_id', 'pert_type', 'cell_feature', 'pert_idose'])
+        #         genes_cols = sorted_test_input.columns[5:]
+        #         assert sorted_test_input.shape[0] == predict_np.shape[0]
+        #         predict_df = pd.DataFrame(predict_np, index = sorted_test_input.index, columns = genes_cols)
+        #         ground_truth_df = pd.DataFrame(lb_np, index = sorted_test_input.index, columns = genes_cols)
+        #         result_df = pd.concat([sorted_test_input.iloc[:, :5], predict_df], axis = 1)
+        #         ground_truth_df = pd.concat([sorted_test_input.iloc[:,:5], ground_truth_df], axis = 1)
 
-                print("=====================================write out data=====================================")
-                if epoch == 1:
-                    result_df.loc[[x for x in range(len(result_df)//100)],:].to_csv('../MultiDCP/data/teacher_student/second_AD_dataset_results.csv', index = False)
-                    # hidden_df.loc[[x for x in range(len(hidden_df))],:].to_csv('../MultiDCP/data/AMPAD_data/second_AD_dataset_hidden_representation.csv', index = False)
-                else:
-                    result_df.loc[[x for x in range(len(result_df))],:].to_csv(args.predicted_result_for_testset, index = False)
-                # hidden_df.loc[[x for x in range(len(hidden_df))],:].to_csv(args.hidden_repr_result_for_testset, index = False)
-                # ground_truth_df.loc[[x for x in range(len(result_df))],:].to_csv('../MultiDCP/data/side_effect/test_for_same.csv', index = False)
+        #         print("=====================================write out data=====================================")
+        #         if epoch == 1:
+        #             result_df.loc[[x for x in range(len(result_df)//100)],:].to_csv('../MultiDCP/data/teacher_student/second_AD_dataset_results.csv', index = False)
+        #             # hidden_df.loc[[x for x in range(len(hidden_df))],:].to_csv('../MultiDCP/data/AMPAD_data/second_AD_dataset_hidden_representation.csv', index = False)
+        #         else:
+        #             result_df.loc[[x for x in range(len(result_df))],:].to_csv(args.predicted_result_for_testset, index = False)
+        #         # hidden_df.loc[[x for x in range(len(hidden_df))],:].to_csv(args.hidden_repr_result_for_testset, index = False)
+        #         # ground_truth_df.loc[[x for x in range(len(result_df))],:].to_csv('../MultiDCP/data/side_effect/test_for_same.csv', index = False)
 
-            test_epoch_end(epoch_loss = epoch_loss, lb_np = lb_np, 
-                                predict_np = predict_np, steps_per_epoch = i+1, 
-                                epoch = epoch, metrics_summary = metrics_summary,
-                                job = 'perturbed')
+        #     test_epoch_end(epoch_loss = epoch_loss, lb_np = lb_np, 
+        #                         predict_np = predict_np, steps_per_epoch = i+1, 
+        #                         epoch = epoch, metrics_summary = metrics_summary,
+        #                         job = 'perturbed')
 
 
 if __name__ == '__main__':

@@ -229,9 +229,9 @@ for epoch in range(max_epoch):
             ae_precision.append([precision_pos, precision_neg])
         precisionk_list_ae_dev.append(ae_precision)
 
-        if best_dev_pearson < pearson:
-            best_dev_pearson = pearson
-            save(model.sub_multidcp.state_dict(), 'best_sub_multidcp_storage_split3')
+        # if best_dev_pearson < pearson:
+        #     best_dev_pearson = pearson
+        save(model.sub_multidcp.state_dict(), 'best_sub_multidcp_storage_split3')
 
     epoch_loss = 0
     lb_np = np.empty([0, cell_decoder_dim])
