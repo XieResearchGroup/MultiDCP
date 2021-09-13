@@ -230,8 +230,8 @@ class MultiDCPBase(nn.Module):
                 else:
                     self.initializer(parameter)
         if pretrained:
-            self.multidcp.load_state_dict(torch.load('best_model_ehill_storage_'))
-
+            #self.multidcp.load_state_dict(torch.load('best_model_ehill_storage_'))
+            self.multidcp.load_state_dict(torch.load('/raid/home/yoyowu/MultiDCP/for_deepCOP_binary.pt'))
     def loss(self, label, predict):
         if self.loss_type == 'point_wise_mse':
             loss = point_wise_mse(label, predict)

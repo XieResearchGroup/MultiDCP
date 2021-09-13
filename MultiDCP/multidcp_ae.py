@@ -248,7 +248,7 @@ def model_training(args, model, data, ae_data, metrics_summary):
             if best_dev_pearson < metrics_summary['pearson_list_perturbed_dev'][-1] or epoch == 1:
                 # data_save = True
                 best_dev_pearson = metrics_summary['pearson_list_perturbed_dev'][-1]
-                torch.save(model.state_dict(), 'best_multidcp_ae_model_1.pt')
+                torch.save(model.multidcp.state_dict(), 'B_for_deepCOP_binary.pt')
         # if not data_save or (epoch < 400 and epoch != 1):
         #     continue
         # epoch_loss = 0
