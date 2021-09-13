@@ -152,6 +152,16 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
     :param device: save on gpu device if necessary
     :return:
     """
+
+    ### for deepCOP#######
+
+        
+    # sorted_test_input = pd.read_csv("MultiDCP_data/data/pert_transcriptom/signature_test_cell_1.csv").sort_values(['pert_id', 'pert_type', 'cell_id', 'pert_idose'])
+    # genes_cols = sorted_test_input.columns[5:]
+
+    # drug_id = feature[:,0]
+    # ground_truth_df = pd.DataFrame(label, index =drug_id, columns = genes_cols)
+    # ground_truth_df.to_csv('deepCOP_data.csv')
     if not basal_expression_file.endswith('csv'):
         basal_expression_file += '.csv'
     basal_cell_line_expression_feature_csv = pd.read_csv(basal_expression_file, index_col = 0)

@@ -119,12 +119,13 @@ class PerturbedDataLoader(pl.LightningDataModule):
         pass
 
     def setup(self, stage = None):
+        self.test_data = PerturbedDataset(self.drug_file, self.test_data_file,
+                self.data_filter, self.device, self.cell_ge_file_name)
         self.train_data = PerturbedDataset(self.drug_file, self.train_data_file,
                  self.data_filter, self.device, self.cell_ge_file_name)
         self.dev_data = PerturbedDataset(self.drug_file, self.dev_data_file,
                  self.data_filter, self.device, self.cell_ge_file_name)
-        self.test_data = PerturbedDataset(self.drug_file, self.test_data_file,
-                 self.data_filter, self.device, self.cell_ge_file_name)
+       
         self.use_pert_type = self.train_data.use_pert_type
         self.use_cell_id = self.train_data.use_cell_id
         self.use_pert_idose = self.train_data.use_pert_idose
