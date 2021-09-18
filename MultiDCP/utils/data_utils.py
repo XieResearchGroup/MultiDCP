@@ -135,6 +135,7 @@ def read_data(input_file, filter):
         ft = ft.split(',')
         feature.append(ft)
         pert_id.append(ft[0])
+        
         if len(lb) == 1:
             label.append(lb[0])
         else:
@@ -161,7 +162,7 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
 
     # drug_id = feature[:,0]
     # ground_truth_df = pd.DataFrame(label, index =drug_id, columns = genes_cols)
-    # ground_truth_df.to_csv('deepCOP_data.csv')
+    # ground_truth_df.to_csv('/raid/home/yoyowu/MultiDCP/DeepCOP_data/DCP_data.csv')
     if not basal_expression_file.endswith('csv'):
         basal_expression_file += '.csv'
     basal_cell_line_expression_feature_csv = pd.read_csv(basal_expression_file, index_col = 0)
@@ -169,10 +170,10 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
     drug_target_feature = []
     pert_type_set = sorted(list(set(feature[:, 1])))
     cell_id_set = sorted(list(set(feature[:, 2])))
-    pert_idose_set = sorted(list(set(feature[:, 3])))
+    #pert_idose_set = sorted(list(set(feature[:, 3])))
     # pert_type_set = ['trt_cp']
     # cell_id_set = ['HA1E', 'HT29', 'MCF7', 'YAPC', 'HELA', 'PC3', 'A375']
-    # pert_idose_set = ['1.11 um', '0.37 um', '10.0 um', '0.04 um', '3.33 um', '0.12 um']
+    pert_idose_set = ['1.11 um', '0.37 um', '10.0 um', '0.04 um', '3.33 um', '0.12 um']
     use_pert_type = False
     use_cell_id = True ## cell feature will always used
     use_pert_idose = False
@@ -184,10 +185,14 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
     cell_id_dict = dict(zip(cell_id_set, list(range(len(cell_id_set)))))
     final_cell_id_feature = []
     use_cell_id = True
-    if len(pert_idose_set) > 1:
-        pert_idose_dict = dict(zip(pert_idose_set, list(range(len(pert_idose_set)))))
-        final_pert_idose_feature = []
-        use_pert_idose = True
+   # for deepCOP eval
+    pert_idose_dict = dict(zip(pert_idose_set, list(range(6))))
+    final_pert_idose_feature = []
+    use_pert_idose = True
+    #if len(pert_idose_set) > 1:
+        # pert_idose_dict = dict(zip(pert_idose_set, list(range(len(pert_idose_set)))))
+        # final_pert_idose_feature = []
+        # use_pert_idose = True
     print('Feature Summary (printing from data_utils):')
     print(pert_type_set)
     print(cell_id_set)
@@ -205,10 +210,14 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
             # cell_id_feature[cell_id_dict[ft[2]]] = 1
             cell_id_feature = basal_cell_line_expression_feature_csv.loc[ft[2],:] ## new_code
             final_cell_id_feature.append(np.array(cell_id_feature, dtype=np.float64))
-        if use_pert_idose:
-            pert_idose_feature = np.zeros(len(pert_idose_set))
-            pert_idose_feature[pert_idose_dict[ft[3]]] = 1
-            final_pert_idose_feature.append(np.array(pert_idose_feature, dtype=np.float64))
+        ## for deepCOP eval, 10 only 
+        #if use_pert_idose:
+        pert_idose_feature = np.zeros(6)
+        pert_idose_feature[pert_idose_dict[ft[3]]] = 1
+        final_pert_idose_feature.append(np.array(pert_idose_feature, dtype=np.float64))
+        # pert_idose_feature = np.zeros(len(pert_idose_set))
+        # pert_idose_feature[pert_idose_dict[ft[3]]] = 1
+        # final_pert_idose_feature.append(np.array(pert_idose_feature, dtype=np.float64))
 
     feature_dict = dict()
     feature_dict['drug'] = np.asarray(drug_feature)
