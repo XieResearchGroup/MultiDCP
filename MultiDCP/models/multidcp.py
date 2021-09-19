@@ -3,7 +3,7 @@ import torch.nn as nn
 from neural_fingerprint import NeuralFingerprint
 from drug_gene_attention import DrugGeneAttention
 from ltr_loss import point_wise_mse, list_wise_listnet, list_wise_listmle, pair_wise_ranknet, list_wise_rankcosine, \
-    list_wise_ndcg, combine_loss, mse_plus_homophily
+    list_wise_ndcg, combine_loss, mse_plus_homophily,binary_cross_logits
 import pdb
 import math
 
@@ -247,6 +247,8 @@ class MultiDCPBase(nn.Module):
             loss = list_wise_ndcg(label, predict)
         elif self.loss_type == 'combine':
             loss = combine_loss(label, predict, self.device)
+        elif self.loss_type =='binary_cross_logits':
+            loss = binary_cross_logits(label, predict)
         else:
             raise ValueError('Unknown loss: %s' % self.loss_type)
         return loss

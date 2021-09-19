@@ -30,10 +30,10 @@ class AEDataLoader(pl.LightningDataModule):
     def __init__(self, device, args):
         super(AEDataLoader, self).__init__()
         self.batch_size = args.batch_size
-        self.train_data_file = args.ae_input_file 
+        self.train_data_file = args.ae_input_file+'_train.csv'
         # self.dev_data_file = args.ae_input_file + '_dev.csv'
         # self.test_data_file = args.ae_input_file + '_test.csv'
-        self.train_label_file = args.ae_label_file 
+        self.train_label_file = args.ae_label_file+'_train.csv'
         # self.dev_label_file = args.ae_label_file + '_dev.csv'
         # self.test_label_file = args.ae_label_file + '_test.csv'
         self.device = device
@@ -64,10 +64,10 @@ class AEDataLoader(pl.LightningDataModule):
 
 class PerturbedDataset(Dataset):
 
-    def __init__(self, drug_file, data_file, data_filter, device, cell_ge_file_name):
+    def __init__(self, drug_file, data_file, data_filter, device, cell_ge_file_name,gene_cutoffs_down, gene_cutoffs_up,all_genes,direction):
         self.device = device
         self.drug, self.drug_dim = data_utils.read_drug_string(drug_file)
-        feature, label, self.cell_type = data_utils.read_data(data_file, data_filter)
+        feature, label = data_utils.read_data(data_file, data_filter,gene_cutoffs_down, gene_cutoffs_up,all_genes,direction)
         self.feature, self.label, self.use_pert_type, self.use_cell_id, self.use_pert_idose = \
             data_utils.transform_to_tensor_per_dataset(feature, label, self.drug, self.device, cell_ge_file_name)
 
@@ -81,11 +81,11 @@ class PerturbedDataset(Dataset):
             output['cell_id'] = self.feature['cell_id'][idx]
         if self.use_pert_idose:
             output['pert_idose'] = self.feature['pert_idose'][idx]
-        return output, self.label[idx], self.cell_type[idx]
+        return output, self.label[idx]
 
 class PerturbedDataLoader(pl.LightningDataModule):
 
-    def __init__(self, data_filter, device, args):
+    def __init__(self, data_filter,gene_cutoffs_down,gene_cutoffs_up,all_genes, device, args):
         super(PerturbedDataLoader, self).__init__()
         self.batch_size = args.batch_size
         self.train_data_file = args.train_file
@@ -96,7 +96,10 @@ class PerturbedDataLoader(pl.LightningDataModule):
         self.device = device
         self.cell_ge_file_name = args.cell_ge_file
         self.gene = data_utils.read_gene(args.gene_file, self.device)
-    
+        self.gene_cutoffs_down = gene_cutoffs_down
+        self.gene_cutoffs_up = gene_cutoffs_up
+        self.all_genes = all_genes
+        self.direction = args.direction
     def collate_fn(self, batch):
         features = {}
         features['drug'] = data_utils.convert_smile_to_feature([output['drug'] for output, _, _ in batch], self.device)
@@ -106,9 +109,8 @@ class PerturbedDataLoader(pl.LightningDataModule):
                 continue
             features[key] = torch.stack([output[key] for output, _, _ in batch], dim = 0)
         labels = torch.stack([label for _, label, _ in batch], dim = 0)
-        cell_types = torch.Tensor([cell_type for _, _, cell_type in batch])
-        return features, labels, torch.Tensor(cell_types).to(self.device)
-
+        #cell_types = torch.Tensor([cell_type for _, _, cell_type in batch])
+        return features, labels
     def prepare_data(self):
         '''
         Use this method to do things that might write to disk or that need to be \
@@ -119,13 +121,17 @@ class PerturbedDataLoader(pl.LightningDataModule):
         pass
 
     def setup(self, stage = None):
-        self.test_data = PerturbedDataset(self.drug_file, self.test_data_file,
-                self.data_filter, self.device, self.cell_ge_file_name)
+      
         self.train_data = PerturbedDataset(self.drug_file, self.train_data_file,
-                 self.data_filter, self.device, self.cell_ge_file_name)
+                self.data_filter, self.device, self.cell_ge_file_name,
+                self.gene_cutoffs_down, self.gene_cutoffs_up,self.all_genes,self.direction)
         self.dev_data = PerturbedDataset(self.drug_file, self.dev_data_file,
-                 self.data_filter, self.device, self.cell_ge_file_name)
-       
+                self.data_filter, self.device, self.cell_ge_file_name,
+                self.gene_cutoffs_down, self.gene_cutoffs_up,self.all_genes,self.direction)
+        self.test_data = PerturbedDataset(self.drug_file, self.test_data_file,
+                self.data_filter, self.device, self.cell_ge_file_name,
+                self.gene_cutoffs_down, self.gene_cutoffs_up,self.all_genes,self.direction)
+        
         self.use_pert_type = self.train_data.use_pert_type
         self.use_cell_id = self.train_data.use_cell_id
         self.use_pert_idose = self.train_data.use_pert_idose

@@ -6,7 +6,9 @@ import pdb
 def point_wise_mse(label, predict):
     loss = loss_utils.mse(label, predict)
     return loss
-
+def binary_cross_logits(label,predict):
+    loss= loss_utils.bce(label,predict)
+    return loss
 def mse_plus_homophily(label, predict, hidden_rep, cell_type):
 
     loss = point_wise_mse(label, predict) + 0.5 * loss_utils.apply_NodeHomophily(hidden_rep, cell_type)

@@ -215,3 +215,4 @@ apply_ApproxNDCG_OP = ApproxNDCG_OP.apply
 mse = nn.MSELoss()
 ce = nn.CrossEntropyLoss()
 cos = nn.CosineSimilarity(dim=1)
+bce = nn.BCELoss()

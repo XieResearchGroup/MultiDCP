@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import torch.nn as nn 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "5"
 import sys
 from datetime import datetime
@@ -12,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/utils')
 import multidcp
 import datareader
 import metric
+from sklearn import metrics
 import wandb
 import pdb
 import pickle
@@ -55,66 +57,91 @@ def validation_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, 
     print(epoch_loss / steps_per_epoch)
     if USE_WANDB:
         wandb.log({'{0} Dev loss'.format(job): epoch_loss/steps_per_epoch}, step=epoch)
-    rmse = metric.rmse(lb_np, predict_np)
-    metrics_summary['rmse_list_{0}_dev'.format(job)].append(rmse)
-    print('{0} RMSE: {1}'.format(job, rmse))
+    #rmse = metric.rmse(lb_np, predict_np)
+    # to get point wise evaluation 
+    lb_np = lb_np.flatten()
+    predict_np = predict_np.flatten()
+    
+    aucroc = metrics.roc_auc_score(lb_np, predict_np)
+    metrics_summary['aucroc_list_{0}_dev'.format(job)].append(aucroc)
+    print('{0} AUCROC: {1}'.format(job, aucroc))
     if USE_WANDB:
-        wandb.log({'{0} Dev RMSE'.format(job): rmse}, step=epoch)
-    pearson, _ = metric.correlation(lb_np, predict_np, 'pearson')
-    metrics_summary['pearson_list_{0}_dev'.format(job)].append(pearson)
-    print('{0} Pearson\'s correlation: {1}'.format(job, pearson))
+        wandb.log({'{0} Dev AUCROC'.format(job): aucroc}, step=epoch)
+    prec,reca,_ = metrics.precision_recall_curve(lb_np, predict_np)
+    aucpr = metrics.auc(reca,prec)
+
+    metrics_summary['aucpr_{0}_dev'.format(job)].append(aucpr)
+    print('{0} AUCPR: {1}'.format(job, aucpr))
     if USE_WANDB:
-        wandb.log({'{0} Dev Pearson'.format(job): pearson}, step = epoch)
-    spearman, _ = metric.correlation(lb_np, predict_np, 'spearman')
-    metrics_summary['spearman_list_{0}_dev'.format(job)].append(spearman)
-    print('{0} Spearman\'s correlation: {1}'.format(job, spearman))
+        wandb.log({'{0} Dev AUCPR'.format(job): aucpr}, step = epoch)
+    pred = np.argmax(predict_np,axis=1)
+    f1=metrics.f1_score(lb_np,pred,average='weighted')
+ 
+    metrics_summary['weighted_f1_{0}_dev'.format(job)].append(f1)
+    print('{0} Weighted_f1: {1}'.format(job, f1))
     if USE_WANDB:
-        wandb.log({'{0} Dev Spearman'.format(job): spearman}, step = epoch)
-    ae_precision = []
-    for k in PRECISION_DEGREE:
-        precision_neg, precision_pos = metric.precision_k(lb_np, predict_np, k)
-        print("{0} Precision@{1} Positive: {2}" .format(job, k, precision_pos))
-        print("{0} Precision@{1} Negative: {2}" .format(job, k, precision_neg))
-        ae_precision.append([precision_pos, precision_neg])
-    metrics_summary['precisionk_list_{0}_dev'.format(job)].append(ae_precision)
+        wandb.log({'{0} Dev Weighted F1'.format(job): f1}, step = epoch)
 
 def test_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, metrics_summary, job):
+
     print('{0} Test loss:'.format(job))
     print(epoch_loss / steps_per_epoch)
     if USE_WANDB:
-        wandb.log({'{0} Test Loss'.format(job): epoch_loss / steps_per_epoch}, step = epoch)
-    rmse = metric.rmse(lb_np, predict_np)
-    metrics_summary['rmse_list_{0}_test'.format(job)].append(rmse)
-    print('{0} RMSE: {1}'.format(job, rmse))
+        wandb.log({'{0} Test loss'.format(job): epoch_loss/steps_per_epoch}, step=epoch)
+    #rmse = metric.rmse(lb_np, predict_np)
+    # to get point wise evaluation 
+    lb_np = lb_np.flatten()
+    predict_np = predict_np.flatten()
+    
+    aucroc = metrics.roc_auc_score(lb_np, predict_np)
+    metrics_summary['aucroc_list_{0}_test'.format(job)].append(aucroc)
+    print('{0} AUCROC: {1}'.format(job, aucroc))
     if USE_WANDB:
-        wandb.log({'{0} Test RMSE'.format(job): rmse} , step = epoch)
-    pearson, _ = metric.correlation(lb_np, predict_np, 'pearson')
-    metrics_summary['pearson_list_{0}_test'.format(job)].append(pearson)
-    print('{0} Pearson\'s correlation: {1}'.format(job, pearson))
+        wandb.log({'{0} Test AUCROC'.format(job): aucroc}, step=epoch)
+    prec,reca,_ = metrics.precision_recall_curve(lb_np, predict_np)
+    aucpr = metrics.auc(reca,prec)
+
+    metrics_summary['aucpr_{0}_test'.format(job)].append(aucpr)
+    print('{0} AUCPR: {1}'.format(job, aucpr))
     if USE_WANDB:
-        wandb.log({'{0} Test Pearson'.format(job): pearson}, step = epoch)
-    spearman, _ = metric.correlation(lb_np, predict_np, 'spearman')
-    metrics_summary['spearman_list_{0}_test'.format(job)].append(spearman)
-    print('{0} Spearman\'s correlation: {1}'.format(job, spearman))
+        wandb.log({'{0} Test AUCPR'.format(job): aucpr}, step = epoch)
+    pred = np.argmax(predict_np,axis=1)
+    f1=metrics.f1_score(lb_np,pred,average='weighted')
+ 
+    metrics_summary['weighted_f1_{0}_test'.format(job)].append(f1)
+    print('{0} Weighted_f1: {1}'.format(job, f1))
     if USE_WANDB:
-        wandb.log({'{0} Test Spearman'.format(job): spearman}, step = epoch)
-    ae_precision_test = []
-    for k in PRECISION_DEGREE:
-        precision_neg, precision_pos = metric.precision_k(lb_np, predict_np, k)
-        print("{0} Precision@{1} Positive: {2}".format(job, k, precision_pos))
-        print("{0} Precision@{1} Negative: {2}".format(job, k, precision_neg))
-        ae_precision_test.append([precision_pos, precision_neg])
-    metrics_summary['precisionk_list_{0}_test'.format(job)].append(ae_precision_test)
+        wandb.log({'{0} Test Weighted F1'.format(job): f1}, step = epoch)
+    # print('{0} Test loss:'.format(job))
+    # print(epoch_loss / steps_per_epoch)
+    # if USE_WANDB:
+    #     wandb.log({'{0} Test Loss'.format(job): epoch_loss / steps_per_epoch}, step = epoch)
+    # rmse = metric.rmse(lb_np, predict_np)
+    # metrics_summary['rmse_list_{0}_test'.format(job)].append(rmse)
+    # print('{0} RMSE: {1}'.format(job, rmse))
+    # if USE_WANDB:
+    #     wandb.log({'{0} Test RMSE'.format(job): rmse} , step = epoch)
+    # pearson, _ = metric.correlation(lb_np, predict_np, 'pearson')
+    # metrics_summary['pearson_list_{0}_test'.format(job)].append(pearson)
+    # print('{0} Pearson\'s correlation: {1}'.format(job, pearson))
+    # if USE_WANDB:
+    #     wandb.log({'{0} Test Pearson'.format(job): pearson}, step = epoch)
+    # spearman, _ = metric.correlation(lb_np, predict_np, 'spearman')
+    # metrics_summary['spearman_list_{0}_test'.format(job)].append(spearman)
+    # print('{0} Spearman\'s correlation: {1}'.format(job, spearman))
+    # if USE_WANDB:
+    #     wandb.log({'{0} Test Spearman'.format(job): spearman}, step = epoch)
+    # ae_precision_test = []
+    # for k in PRECISION_DEGREE:
+    #     precision_neg, precision_pos = metric.precision_k(lb_np, predict_np, k)
+    #     print("{0} Precision@{1} Positive: {2}".format(job, k, precision_pos))
+    #     print("{0} Precision@{1} Negative: {2}".format(job, k, precision_neg))
+    #     ae_precision_test.append([precision_pos, precision_neg])
+    # metrics_summary['precisionk_list_{0}_test'.format(job)].append(ae_precision_test)
 
 def report_final_results(metrics_summary):
     best_dev_epoch = np.argmax(metrics_summary['pearson_list_perturbed_dev'])
-    # print("Epoch %d got best AE Pearson's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_ae_dev'][best_dev_epoch]))
-    # print("Epoch %d got AE Spearman's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_ae_dev'][best_dev_epoch]))
-    # print("Epoch %d got AE RMSE on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['rmse_list_ae_dev'][best_dev_epoch]))
-    # print("Epoch %d got AE P@100 POS and NEG on dev set: %.4f, %.4f" % (best_dev_epoch + 1,
-    #                                                                 metrics_summary['precisionk_list_ae_dev'][best_dev_epoch][-1][0],
-    #                                                                 metrics_summary['precisionk_list_ae_dev'][best_dev_epoch][-1][1]))
-
+  
     print("Epoch %d got best Perturbed Pearson's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_perturbed_dev'][best_dev_epoch]))
     print("Epoch %d got Perturbed Spearman's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_perturbed_dev'][best_dev_epoch]))
     print("Epoch %d got Perturbed RMSE on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['rmse_list_perturbed_dev'][best_dev_epoch]))
@@ -245,35 +272,11 @@ def model_training(args, model, data, ae_data, metrics_summary):
                                 epoch = epoch, metrics_summary = metrics_summary,
                                 job = 'perturbed')
 
-            if best_dev_pearson < metrics_summary['pearson_list_perturbed_dev'][-1] or epoch == 1:
-                # data_save = True
-                best_dev_pearson = metrics_summary['pearson_list_perturbed_dev'][-1]
-                torch.save(model.multidcp.state_dict(), 'B_for_deepCOP_binary.pt')
-        # if not data_save or (epoch < 400 and epoch != 1):
-        #     continue
-        # epoch_loss = 0
-        # lb_np = np.empty([0, 978])
-        # predict_np = np.empty([0, 978])
-        # hidden_np = np.empty([0, 50])
-        # with torch.no_grad():
-        #     for i, (feature, label, _) in enumerate(ae_data.test_dataloader()):
-        #         predict, hidden = model(input_cell_gex=feature, job_id = 'ae')
-        #         loss = model.loss(label, predict)
-        #         epoch_loss += loss.item()
-        #         lb_np = np.concatenate((lb_np, label.cpu().numpy()), axis=0)
-        #         predict_np = np.concatenate((predict_np, predict.cpu().numpy()), axis=0)
-        #         hidden_np = np.concatenate((hidden_np, hidden.cpu().numpy()), axis=0)
-
-            if data_save:
-                test_ae_label_file = pd.read_csv(args.ae_label_file + '_test.csv', index_col=0)
-                hidden_df = pd.DataFrame(hidden_np, index = list(test_ae_label_file.index), columns = [x for x in range(50)])
-                print('++++++++++++++++++++++++++++Write hidden state out++++++++++++++++++++++++++++++++')
-                hidden_df.to_csv(args.hidden_repr_result_for_testset)
-
-            # test_epoch_end(epoch_loss = epoch_loss, lb_np = lb_np, 
-            #                     predict_np = predict_np, steps_per_epoch = i+1, 
-            #                     epoch = epoch, metrics_summary = metrics_summary,
-            #                     job = 'ae')
+            # if best_dev_pearson < metrics_summary['pearson_list_perturbed_dev'][-1] or epoch == 1:
+            #     # data_save = True
+            #     best_dev_pearson = metrics_summary['pearson_list_perturbed_dev'][-1]
+            #     torch.save(model.multidcp.state_dict(), 'B_for_deepCOP_binary.pt')
+    
 
         epoch_loss = 0
         lb_np_ls = []
@@ -297,24 +300,7 @@ def model_training(args, model, data, ae_data, metrics_summary):
             lb_np = np.concatenate(lb_np_ls, axis = 0)
             predict_np = np.concatenate(predict_np_ls, axis = 0)
             hidden_np = np.concatenate(hidden_np_ls, axis = 0)
-            if data_save:
-                sorted_test_input = pd.read_csv(args.test_file).sort_values(['pert_id', 'pert_type', 'cell_feature', 'pert_idose'])
-                genes_cols = sorted_test_input.columns[5:]
-                assert sorted_test_input.shape[0] == predict_np.shape[0]
-                predict_df = pd.DataFrame(predict_np, index = sorted_test_input.index, columns = genes_cols)
-                ground_truth_df = pd.DataFrame(lb_np, index = sorted_test_input.index, columns = genes_cols)
-                result_df = pd.concat([sorted_test_input.iloc[:, :5], predict_df], axis = 1)
-                ground_truth_df = pd.concat([sorted_test_input.iloc[:,:5], ground_truth_df], axis = 1)
-
-                print("=====================================write out data=====================================")
-                if epoch == 1:
-                    result_df.loc[[x for x in range(len(result_df)//100)],:].to_csv('../MultiDCP/data/teacher_student/second_AD_dataset_results.csv', index = False)
-                    # hidden_df.loc[[x for x in range(len(hidden_df))],:].to_csv('../MultiDCP/data/AMPAD_data/second_AD_dataset_hidden_representation.csv', index = False)
-                else:
-                    result_df.loc[[x for x in range(len(result_df))],:].to_csv(args.predicted_result_for_testset, index = False)
-                # hidden_df.loc[[x for x in range(len(hidden_df))],:].to_csv(args.hidden_repr_result_for_testset, index = False)
-                # ground_truth_df.loc[[x for x in range(len(result_df))],:].to_csv('../MultiDCP/data/side_effect/test_for_same.csv', index = False)
-
+           
             test_epoch_end(epoch_loss = epoch_loss, lb_np = lb_np, 
                                 predict_np = predict_np, steps_per_epoch = i+1, 
                                 epoch = epoch, metrics_summary = metrics_summary,
@@ -324,7 +310,7 @@ def model_training(args, model, data, ae_data, metrics_summary):
 if __name__ == '__main__':
     start_time = datetime.now()
 
-    parser = argparse.ArgumentParser(description='MultiDCP PreTraining')
+    parser = argparse.ArgumentParser(description='MultiDCP binary PreTraining')
     parser.add_argument('--expname', type= str, default='')
     parser.add_argument('--device',type=int, default=0)
     parser.add_argument('--drug_file',type = str, default="MultiDCP_data/data/all_drugs_l1000.csv")
@@ -355,7 +341,8 @@ if __name__ == '__main__':
     parser.add_argument('--dropout', type=float, default=0.1)
     parser.add_argument('--linear_encoder_flag', dest = 'linear_encoder_flag', action='store_true', default=False,
                         help = 'whether the cell embedding layer only have linear layers')
-
+    parser.add_argument('--all_signature',type=str, default='/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/pert_transcriptom/signature_total.csv')
+    parser.add_argument('--direction',type=str, default='Up')
     args = parser.parse_args()
 
     seed = args.seed
@@ -366,16 +353,30 @@ if __name__ == '__main__':
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
    
     all_cells = list(pickle.load(open(args.all_cells, 'rb')))
-    DATA_FILTER = {"time": "24H", "pert_id": ['BRD-U41416256', 'BRD-U60236422','BRD-U01690642','BRD-U08759356','BRD-U25771771', 'BRD-U33728988', 'BRD-U37049823',
-                'BRD-U44618005', 'BRD-U44700465','BRD-U51951544', 'BRD-U66370498','BRD-U68942961', 'BRD-U73238814',
-                'BRD-U82589721','BRD-U86922168','BRD-U97083655'],
+    DATA_FILTER = {"time": "24H",
             "pert_type": ["trt_cp"],
-            "cell_id": all_cells,# ['A549', 'MCF7', 'HCC515', 'HEPG2', 'HS578T', 'PC3', 'SKBR3', 'MDAMB231', 'JURKAT', 'A375', 'BT20', 'HELA', 'HT29', 'HA1E', 'YAPC'],
             "pert_idose": ["0.04 um", "0.12 um", "0.37 um", "1.11 um", "3.33 um", "10.0 um"]}
 
+    totaldata=pd.read_csv(args.all_signature,index_col=0)
+    print(f'the size of MultiDCP total signiture data is {len(totaldata)}')
+    
+    totaldata=totaldata.drop(['cell_id','pert_idose','pert_type'],axis=1)
+    totaldata=totaldata.set_index(['pert_id'])
+    gene_cutoffs_down={}
+    gene_cutoffs_up={}
+    percentile_down = 5
+    percentile_up = 100-percentile_down
+
+    for gene in totaldata.columns:
+        row = totaldata[str(gene)]
+        gene_cutoffs_down[gene] = np.percentile(row, percentile_down)
+        gene_cutoffs_up[gene] = np.percentile(row, percentile_up)
+
+    assert(len(gene_cutoffs_down)==978)
+    all_genes = list(totaldata.columns)
 
     ae_data = datareader.AEDataLoader(device, args)
-    data = datareader.PerturbedDataLoader(DATA_FILTER, device, args)
+    data = datareader.PerturbedDataLoader(DATA_FILTER,gene_cutoffs_down,gene_cutoffs_up,all_genes, device, args)
     ae_data.setup()
     data.setup()
     print('#Train: %d' % len(data.train_data))
@@ -403,32 +404,27 @@ if __name__ == '__main__':
     USE_WANDB = True
     PRECISION_DEGREE = [10, 20, 50, 100]
     if USE_WANDB:
-        wandb.init(project="MultiDCP_AE_loss",config=args)
+        wandb.init(project="MultiDCP_binary",config=args)
         wandb.watch(model, log="all")
     else:
         os.environ["WANDB_MODE"] = "dryrun"
 
     # training
     metrics_summary = defaultdict(
-        pearson_list_ae_dev = [],
-        pearson_list_ae_test = [],
-        pearson_list_perturbed_dev = [],
-        pearson_list_perturbed_test = [],
-        spearman_list_ae_dev = [],
-        spearman_list_ae_test = [],
-        spearman_list_perturbed_dev = [],
-        spearman_list_perturbed_test = [],
-        rmse_list_ae_dev = [],
-        rmse_list_ae_test = [],
-        rmse_list_perturbed_dev = [],
-        rmse_list_perturbed_test = [],
-        precisionk_list_ae_dev = [],
-        precisionk_list_ae_test = [],
-        precisionk_list_perturbed_dev = [],
-        precisionk_list_perturbed_test = [],
+      
+        aucroc_list_perturbed_dev = [],
+        aucroc_list_perturbed_test = [],
+      
+        
+    
+        aucpr_perturbed_dev = [],
+        aucpr_perturbed_test = [],
+     
+        weighted_f1_perturbed_dev = [],
+        weighted_f1_perturbed_test = [],
     )
 
     model_training(args, model, data, ae_data, metrics_summary)
-    report_final_results(metrics_summary)
+    #report_final_results(metrics_summary)
     end_time = datetime.now()
     print(end_time - start_time)

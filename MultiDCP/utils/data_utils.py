@@ -105,16 +105,40 @@ def split_data_by_pert_id(pert_id):
     dev_pert_id = pert_id[fold_size*6: fold_size*8]
     test_pert_id = pert_id[fold_size*8:]
     return train_pert_id, dev_pert_id, test_pert_id
+def get_class_vote(pert_list, bottom_threshold, top_threshold):
+    votes = [0, 0, 0, 0]
+    # list of perts
+    for pert in pert_list:
+        if pert > top_threshold:
+            votes[3] += 1  # upregulation
+        elif pert < bottom_threshold:
+            votes[1] += 1  # downregulation
+        else:
+            votes[2] += 1  # not regulated
+    highest_vote_class = np.argmax(votes)
+
+    is_tie = False  # check if there's a tie (another class with the same number of votes)
+    for i in range(0, len(votes)):
+        if i == highest_vote_class:
+            continue
+        if votes[i] == votes[highest_vote_class]:
+            is_tie = True
+            break
+    if is_tie:
+        return 0
+    else:
+        return highest_vote_class
 
 
-def read_data(input_file, filter):
+def read_data(input_file, filter,gene_cutoffs_down, gene_cutoffs_up,all_genes,direction):
     """
     :param input_file: including the time, pertid, perttype, cellid, dosage and the perturbed gene expression file (label)
     :param filter: help to check whether the pertid is in the research scope, cells in the research scope ...
     :return: the features, labels and cell type
     """
     feature = []
-    label = []
+    up_labels = []
+    down_labels = []
     data = dict()
     pert_id = []
     with open(input_file, 'r') as f:
@@ -130,19 +154,45 @@ def read_data(input_file, filter):
                     data[ft].append(lb)
                 else:
                     data[ft] = [lb]
-
+                    
     for ft, lb in sorted(data.items()):
+        lb = np.array(lb)
         ft = ft.split(',')
         feature.append(ft)
-        pert_id.append(ft[0])
+        #pert_id.append(ft[0])
+        lb_voted = np.zeros(978,dtype=int)
+        down_label = np.zeros(978,dtype=int)
+        up_label =  np.zeros(978,dtype=int)
+        for gene in all_genes:
+            lb_voted[all_genes.index(gene)] = get_class_vote(lb[:,all_genes.index(gene)], gene_cutoffs_down[gene], gene_cutoffs_up[gene])
+    
+        down_locations = np.where(lb_voted == 1)
+        mid_locations = np.where(lb_voted == 2)
+        up_locations = np.where(lb_voted== 3)
+        down_label[down_locations] =1 
+        up_label[up_locations]=1
+        up_labels.append(up_label)
+        down_labels.append(down_label)
+
+    # for ft, lb in sorted(data.items()):
+    #     ft = ft.split(',')
+    #     feature.append(ft)
+    #     pert_id.append(ft[0])
         
-        if len(lb) == 1:
-            label.append(lb[0])
-        else:
-            lb = choose_mean_example(lb)
-            label.append(lb)
-    _, cell_type = np.unique(np.asarray([x[2] for x in feature]), return_inverse=True)
-    return np.asarray(feature), np.asarray(label, dtype=np.float64), cell_type
+    #     if len(lb) == 1:
+    #         label.append(lb[0])
+    #     else:
+    #         lb = choose_mean_example(lb)
+    #         label.append(lb)
+    #_, cell_type = np.unique(np.asarray([x[2] for x in feature]), return_inverse=True)
+    feature = np.asarray(feature)
+    if direction =='Up':
+        label = np.asarray(up_labels)
+    elif direction =='Down':
+        label = np.asarray(down_labels)
+    else:
+        raise "wrong direction"
+    return np.asarray(feature), np.asarray(label, dtype=np.float64)
 
 def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expression_file):
 
@@ -227,8 +277,8 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
         feature_dict['cell_id'] = torch.from_numpy(np.asarray(final_cell_id_feature, dtype=np.float64)).to(device)
     if use_pert_idose:
         feature_dict['pert_idose'] = torch.from_numpy(np.asarray(final_pert_idose_feature, dtype=np.float64)).to(device)
-    label_regression = torch.from_numpy(label).to(device)
-    return feature_dict, label_regression, use_pert_type, use_cell_id, use_pert_idose
+    label_binary = torch.from_numpy(label).to(device)
+    return feature_dict, label_binary, use_pert_type, use_cell_id, use_pert_idose
 
 
 def transfrom_to_tensor(feature_train, label_train, feature_dev, label_dev, feature_test, label_test, drug,
