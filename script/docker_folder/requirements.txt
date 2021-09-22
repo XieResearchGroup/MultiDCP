@@ -1,4 +1,4 @@
-rtifi==2021.5.30
+certifi==2021.5.30
 cffi==1.14.0
 chardet==3.0.4
 click==8.0.1
@@ -16,8 +16,6 @@ joblib==1.0.1
 kiwisolver==1.3.1
 matplotlib==3.3.4
 mkl-fft==1.3.0
-mkl-random==1.2.1
-mkl-service==2.3.0
 numpy==1.20.2
 olefile==0.46
 pandas==1.2.5
