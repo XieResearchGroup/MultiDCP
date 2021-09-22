@@ -64,10 +64,10 @@ class AEDataLoader(pl.LightningDataModule):
 
 class PerturbedDataset(Dataset):
 
-    def __init__(self, drug_file, data_file, data_filter, device, cell_ge_file_name,gene_cutoffs_down, gene_cutoffs_up,all_genes,direction):
+    def __init__(self, drug_file, data_file, data_filter, device,cell_ge_file_name):
         self.device = device
         self.drug, self.drug_dim = data_utils.read_drug_string(drug_file)
-        feature, label = data_utils.read_data(data_file, data_filter,gene_cutoffs_down, gene_cutoffs_up,all_genes,direction)
+        feature, label = data_utils.read_data(data_file, data_filter)
         self.feature, self.label, self.use_pert_type, self.use_cell_id, self.use_pert_idose = \
             data_utils.transform_to_tensor_per_dataset(feature, label, self.drug, self.device, cell_ge_file_name)
 
@@ -85,7 +85,7 @@ class PerturbedDataset(Dataset):
 
 class PerturbedDataLoader(pl.LightningDataModule):
 
-    def __init__(self, data_filter,gene_cutoffs_down,gene_cutoffs_up,all_genes, device, args):
+    def __init__(self, data_filter, device, args):
         super(PerturbedDataLoader, self).__init__()
         self.batch_size = args.batch_size
         self.train_data_file = args.train_file
@@ -96,19 +96,19 @@ class PerturbedDataLoader(pl.LightningDataModule):
         self.device = device
         self.cell_ge_file_name = args.cell_ge_file
         self.gene = data_utils.read_gene(args.gene_file, self.device)
-        self.gene_cutoffs_down = gene_cutoffs_down
-        self.gene_cutoffs_up = gene_cutoffs_up
-        self.all_genes = all_genes
-        self.direction = args.direction
+        # self.gene_cutoffs_down = gene_cutoffs_down
+        # self.gene_cutoffs_up = gene_cutoffs_up
+        # self.all_genes = all_genes
+        # self.direction = args.direction
     def collate_fn(self, batch):
         features = {}
-        features['drug'] = data_utils.convert_smile_to_feature([output['drug'] for output, _, _ in batch], self.device)
+        features['drug'] = data_utils.convert_smile_to_feature([output['drug'] for output, _ in batch], self.device)
         features['mask'] = data_utils.create_mask_feature(features['drug'], self.device)
         for key in batch[0][0].keys():
             if key == 'drug':
                 continue
-            features[key] = torch.stack([output[key] for output, _, _ in batch], dim = 0)
-        labels = torch.stack([label for _, label, _ in batch], dim = 0)
+            features[key] = torch.stack([output[key] for output, _ in batch], dim = 0)
+        labels = torch.stack([label for _, label in batch], dim = 0)
         #cell_types = torch.Tensor([cell_type for _, _, cell_type in batch])
         return features, labels
     def prepare_data(self):
@@ -123,14 +123,11 @@ class PerturbedDataLoader(pl.LightningDataModule):
     def setup(self, stage = None):
       
         self.train_data = PerturbedDataset(self.drug_file, self.train_data_file,
-                self.data_filter, self.device, self.cell_ge_file_name,
-                self.gene_cutoffs_down, self.gene_cutoffs_up,self.all_genes,self.direction)
+                self.data_filter, self.device, self.cell_ge_file_name)
         self.dev_data = PerturbedDataset(self.drug_file, self.dev_data_file,
-                self.data_filter, self.device, self.cell_ge_file_name,
-                self.gene_cutoffs_down, self.gene_cutoffs_up,self.all_genes,self.direction)
+                self.data_filter, self.device, self.cell_ge_file_name)
         self.test_data = PerturbedDataset(self.drug_file, self.test_data_file,
-                self.data_filter, self.device, self.cell_ge_file_name,
-                self.gene_cutoffs_down, self.gene_cutoffs_up,self.all_genes,self.direction)
+                self.data_filter, self.device, self.cell_ge_file_name)
         
         self.use_pert_type = self.train_data.use_pert_type
         self.use_cell_id = self.train_data.use_cell_id

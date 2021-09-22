@@ -59,6 +59,9 @@ def validation_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, 
         wandb.log({'{0} Dev loss'.format(job): epoch_loss/steps_per_epoch}, step=epoch)
     #rmse = metric.rmse(lb_np, predict_np)
     # to get point wise evaluation 
+    #pred = np.argmax(predict_np,axis=1)
+    # pred = round(nn.Sigmoid()(predict_np))
+    # f1=metrics.f1_score(lb_np,pred,average='weighted')
     lb_np = lb_np.flatten()
     predict_np = predict_np.flatten()
     
@@ -74,13 +77,13 @@ def validation_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, 
     print('{0} AUCPR: {1}'.format(job, aucpr))
     if USE_WANDB:
         wandb.log({'{0} Dev AUCPR'.format(job): aucpr}, step = epoch)
-    pred = np.argmax(predict_np,axis=1)
-    f1=metrics.f1_score(lb_np,pred,average='weighted')
+    
+    
  
-    metrics_summary['weighted_f1_{0}_dev'.format(job)].append(f1)
-    print('{0} Weighted_f1: {1}'.format(job, f1))
-    if USE_WANDB:
-        wandb.log({'{0} Dev Weighted F1'.format(job): f1}, step = epoch)
+    # metrics_summary['weighted_f1_{0}_dev'.format(job)].append(f1)
+    # print('{0} Weighted_f1: {1}'.format(job, f1))
+    # if USE_WANDB:
+    #     wandb.log({'{0} Dev Weighted F1'.format(job): f1}, step = epoch)
 
 def test_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, metrics_summary, job):
 
@@ -90,6 +93,8 @@ def test_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, metric
         wandb.log({'{0} Test loss'.format(job): epoch_loss/steps_per_epoch}, step=epoch)
     #rmse = metric.rmse(lb_np, predict_np)
     # to get point wise evaluation 
+    # pred = round(nn.Sigmoid()(predict_np))
+    # f1=metrics.f1_score(lb_np,pred,average='weighted')
     lb_np = lb_np.flatten()
     predict_np = predict_np.flatten()
     
@@ -105,13 +110,13 @@ def test_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, metric
     print('{0} AUCPR: {1}'.format(job, aucpr))
     if USE_WANDB:
         wandb.log({'{0} Test AUCPR'.format(job): aucpr}, step = epoch)
-    pred = np.argmax(predict_np,axis=1)
-    f1=metrics.f1_score(lb_np,pred,average='weighted')
+    
+  
  
-    metrics_summary['weighted_f1_{0}_test'.format(job)].append(f1)
-    print('{0} Weighted_f1: {1}'.format(job, f1))
-    if USE_WANDB:
-        wandb.log({'{0} Test Weighted F1'.format(job): f1}, step = epoch)
+    # metrics_summary['weighted_f1_{0}_test'.format(job)].append(f1)
+    # print('{0} Weighted_f1: {1}'.format(job, f1))
+    # if USE_WANDB:
+    #     wandb.log({'{0} Test Weighted F1'.format(job): f1}, step = epoch)
     # print('{0} Test loss:'.format(job))
     # print(epoch_loss / steps_per_epoch)
     # if USE_WANDB:
@@ -223,7 +228,7 @@ def model_training(args, model, data, ae_data, metrics_summary):
         #                         job = 'ae')
 
         epoch_loss = 0
-        for i, (ft, lb, _) in enumerate(data.train_dataloader()):
+        for i, (ft, lb) in enumerate(data.train_dataloader()):
             drug = ft['drug']
             mask = ft['mask']
             cell_feature = ft['cell_id']
@@ -233,7 +238,7 @@ def model_training(args, model, data, ae_data, metrics_summary):
                                         input_gene = data.gene, mask = mask,
                                         input_pert_idose = pert_idose, 
                                         job_id = 'perturbed', epoch = epoch)
-            loss_t = model.loss(lb, predict)
+            loss_t = nn.BCEWithLogitsLoss()( predict,lb)
             loss_t.backward()
             optimizer.step()
             if i == 1:
@@ -254,7 +259,7 @@ def model_training(args, model, data, ae_data, metrics_summary):
         lb_np = np.empty([0, 978])
         predict_np = np.empty([0, 978])
         with torch.no_grad():
-            for i, (ft, lb, _) in enumerate(data.val_dataloader()):
+            for i, (ft, lb) in enumerate(data.val_dataloader()):
                 drug = ft['drug']
                 mask = ft['mask']
                 cell_feature = ft['cell_id']
@@ -263,7 +268,7 @@ def model_training(args, model, data, ae_data, metrics_summary):
                                 input_gene = data.gene, mask = mask,
                                 input_pert_idose = pert_idose, 
                                 job_id = 'perturbed', epoch = epoch)
-                loss = model.loss(lb, predict)
+                loss = nn.BCEWithLogitsLoss()( predict,lb)
                 epoch_loss += loss.item()
                 lb_np = np.concatenate((lb_np, lb.cpu().numpy()), axis=0)
                 predict_np = np.concatenate((predict_np, predict.cpu().numpy()), axis=0)
@@ -283,7 +288,7 @@ def model_training(args, model, data, ae_data, metrics_summary):
         predict_np_ls = []
         hidden_np_ls = []
         with torch.no_grad():
-            for i, (ft, lb, _) in enumerate(tqdm(data.test_dataloader())):
+            for i, (ft, lb) in enumerate(tqdm(data.test_dataloader())):
                 drug = ft['drug']
                 mask = ft['mask']
                 cell_feature = ft['cell_id']
@@ -291,7 +296,7 @@ def model_training(args, model, data, ae_data, metrics_summary):
                 predict, cells_hidden_repr = model(input_cell_gex=cell_feature, input_drug = drug, 
                                                 input_gene = data.gene, mask = mask,
                                                 input_pert_idose = pert_idose, job_id = 'perturbed')
-                loss = model.loss(lb, predict)
+                loss =nn.BCEWithLogitsLoss()(predict,lb)
                 epoch_loss += loss.item()
                 lb_np_ls.append(lb.cpu().numpy()) 
                 predict_np_ls.append(predict.cpu().numpy()) 
@@ -323,9 +328,12 @@ if __name__ == '__main__':
     parser.add_argument('--gene_file', type = str, default = "MultiDCP_data/data/gene_vector.csv")
 
     #parser.add_argument('--cell_file', type= str, default= "MultiDCP_data/data/all_perturbed.csv")    
-    parser.add_argument('--train_file', type= str, default= "MultiDCP_data/data/pert_transcriptom/signature_train_cell_1.csv")
-    parser.add_argument('--dev_file', type=str, default ="MultiDCP_data/data/pert_transcriptom/signature_dev_cell_1.csv" )
-    parser.add_argument('--test_file', type=str, default="MultiDCP_data/data/pert_transcriptom/signature_test_cell_1.csv")
+    # parser.add_argument('--train_file', type= str, default= "MultiDCP_data/data/pert_transcriptom/signature_train_cell_1.csv")
+    # parser.add_argument('--dev_file', type=str, default ="MultiDCP_data/data/pert_transcriptom/signature_dev_cell_1.csv" )
+    # parser.add_argument('--test_file', type=str, default="MultiDCP_data/data/pert_transcriptom/signature_test_cell_1.csv")
+    parser.add_argument('--train_file', type= str, default= "/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/up_signature_train_1.csv")
+    parser.add_argument('--dev_file', type=str, default ="/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/up_signature_dev_1.csv" )
+    parser.add_argument('--test_file', type=str, default="/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/up_signature_test_1.csv")
     parser.add_argument('--batch_size', type = int, default=64)
     parser.add_argument('--ae_input_file',type=str, default= "MultiDCP_data/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4" )
     parser.add_argument('--ae_label_file', type=str, default="MultiDCP_data/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4")
@@ -357,26 +365,9 @@ if __name__ == '__main__':
             "pert_type": ["trt_cp"],
             "pert_idose": ["0.04 um", "0.12 um", "0.37 um", "1.11 um", "3.33 um", "10.0 um"]}
 
-    totaldata=pd.read_csv(args.all_signature,index_col=0)
-    print(f'the size of MultiDCP total signiture data is {len(totaldata)}')
-    
-    totaldata=totaldata.drop(['cell_id','pert_idose','pert_type'],axis=1)
-    totaldata=totaldata.set_index(['pert_id'])
-    gene_cutoffs_down={}
-    gene_cutoffs_up={}
-    percentile_down = 5
-    percentile_up = 100-percentile_down
-
-    for gene in totaldata.columns:
-        row = totaldata[str(gene)]
-        gene_cutoffs_down[gene] = np.percentile(row, percentile_down)
-        gene_cutoffs_up[gene] = np.percentile(row, percentile_up)
-
-    assert(len(gene_cutoffs_down)==978)
-    all_genes = list(totaldata.columns)
-
+   
     ae_data = datareader.AEDataLoader(device, args)
-    data = datareader.PerturbedDataLoader(DATA_FILTER,gene_cutoffs_down,gene_cutoffs_up,all_genes, device, args)
+    data = datareader.PerturbedDataLoader(DATA_FILTER,device, args)
     ae_data.setup()
     data.setup()
     print('#Train: %d' % len(data.train_data))

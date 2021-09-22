@@ -130,15 +130,15 @@ def get_class_vote(pert_list, bottom_threshold, top_threshold):
         return highest_vote_class
 
 
-def read_data(input_file, filter,gene_cutoffs_down, gene_cutoffs_up,all_genes,direction):
+def read_data(input_file, filter):
     """
     :param input_file: including the time, pertid, perttype, cellid, dosage and the perturbed gene expression file (label)
     :param filter: help to check whether the pertid is in the research scope, cells in the research scope ...
     :return: the features, labels and cell type
     """
     feature = []
-    up_labels = []
-    down_labels = []
+    labels = []
+    
     data = dict()
     pert_id = []
     with open(input_file, 'r') as f:
@@ -146,33 +146,34 @@ def read_data(input_file, filter,gene_cutoffs_down, gene_cutoffs_up,all_genes,di
         for line in f:
             line = line.strip().split(',')
             # assert len(line) == 983 or len(line) == 7 or len(line) == 6, "Wrong format"
-            if filter["time"] in line[0]  and line[2] in filter["pert_type"] \
-                    and line[4] in filter["pert_idose"]: # filter["time"] in line[0] and 
-                ft = ','.join(line[1:5])
-                lb = [float(i) for i in line[5:]]
-                if ft in data.keys():
-                    data[ft].append(lb)
-                else:
-                    data[ft] = [lb]
+            # if filter["time"] in line[0]  and line[2] in filter["pert_type"] \
+            #         and line[4] in filter["pert_idose"]: # filter["time"] in line[0] and 
+            ft = ','.join(line[0:4])
+            lb = [i for i in line[4:]]
+            if ft in data.keys():
+                data[ft].append(lb)
+            else:
+                data[ft] = [lb]
                     
     for ft, lb in sorted(data.items()):
-        lb = np.array(lb)
+        #lb = np.array(lb)
         ft = ft.split(',')
         feature.append(ft)
+        labels.append(lb[0])
         #pert_id.append(ft[0])
-        lb_voted = np.zeros(978,dtype=int)
-        down_label = np.zeros(978,dtype=int)
-        up_label =  np.zeros(978,dtype=int)
-        for gene in all_genes:
-            lb_voted[all_genes.index(gene)] = get_class_vote(lb[:,all_genes.index(gene)], gene_cutoffs_down[gene], gene_cutoffs_up[gene])
+        # lb_voted = np.zeros(978,dtype=int)
+        # down_label = np.zeros(978,dtype=int)
+        # up_label =  np.zeros(978,dtype=int)
+        # for gene in all_genes:
+        #     lb_voted[all_genes.index(gene)] = get_class_vote(lb[:,all_genes.index(gene)], gene_cutoffs_down[gene], gene_cutoffs_up[gene])
     
-        down_locations = np.where(lb_voted == 1)
-        mid_locations = np.where(lb_voted == 2)
-        up_locations = np.where(lb_voted== 3)
-        down_label[down_locations] =1 
-        up_label[up_locations]=1
-        up_labels.append(up_label)
-        down_labels.append(down_label)
+        # down_locations = np.where(lb_voted == 1)
+        # mid_locations = np.where(lb_voted == 2)
+        # up_locations = np.where(lb_voted== 3)
+        # down_label[down_locations] =1 
+        # up_label[up_locations]=1
+        # up_labels.append(up_label)
+        # down_labels.append(down_label)
 
     # for ft, lb in sorted(data.items()):
     #     ft = ft.split(',')
@@ -185,14 +186,14 @@ def read_data(input_file, filter,gene_cutoffs_down, gene_cutoffs_up,all_genes,di
     #         lb = choose_mean_example(lb)
     #         label.append(lb)
     #_, cell_type = np.unique(np.asarray([x[2] for x in feature]), return_inverse=True)
-    feature = np.asarray(feature)
-    if direction =='Up':
-        label = np.asarray(up_labels)
-    elif direction =='Down':
-        label = np.asarray(down_labels)
-    else:
-        raise "wrong direction"
-    return np.asarray(feature), np.asarray(label, dtype=np.float64)
+    #feature = np.asarray(feature)
+    # if direction =='Up':
+    #     label = np.asarray(up_labels)
+    # elif direction =='Down':
+    #     label = np.asarray(down_labels)
+    # else:
+    #     raise "wrong direction"
+    return np.asarray(feature), np.asarray(labels,dtype=np.float64)
 
 def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expression_file):
 
@@ -220,10 +221,10 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
     drug_target_feature = []
     pert_type_set = sorted(list(set(feature[:, 1])))
     cell_id_set = sorted(list(set(feature[:, 2])))
-    #pert_idose_set = sorted(list(set(feature[:, 3])))
+    pert_idose_set = sorted(list(set(feature[:, 3])))
     # pert_type_set = ['trt_cp']
     # cell_id_set = ['HA1E', 'HT29', 'MCF7', 'YAPC', 'HELA', 'PC3', 'A375']
-    pert_idose_set = ['1.11 um', '0.37 um', '10.0 um', '0.04 um', '3.33 um', '0.12 um']
+    #pert_idose_set = ['1.11 um', '0.37 um', '10.0 um', '0.04 um', '3.33 um', '0.12 um']
     use_pert_type = False
     use_cell_id = True ## cell feature will always used
     use_pert_idose = False
@@ -236,7 +237,7 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
     final_cell_id_feature = []
     use_cell_id = True
    # for deepCOP eval
-    pert_idose_dict = dict(zip(pert_idose_set, list(range(6))))
+    pert_idose_dict = dict(zip(pert_idose_set, list(range(len(pert_idose_set)))))
     final_pert_idose_feature = []
     use_pert_idose = True
     #if len(pert_idose_set) > 1:
@@ -262,7 +263,7 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
             final_cell_id_feature.append(np.array(cell_id_feature, dtype=np.float64))
         ## for deepCOP eval, 10 only 
         #if use_pert_idose:
-        pert_idose_feature = np.zeros(6)
+        pert_idose_feature = np.zeros(len(pert_idose_set))
         pert_idose_feature[pert_idose_dict[ft[3]]] = 1
         final_pert_idose_feature.append(np.array(pert_idose_feature, dtype=np.float64))
         # pert_idose_feature = np.zeros(len(pert_idose_set))
@@ -445,13 +446,4 @@ def triple_data(data_file,seed):
     data_df = pd.read_csv(data_file,index_col=0)
     
     train_data_df, test_data_df = train_test_split(data_df, test_size=0.1,random_state=seed)
-    return data_df,test_data_df
-
-
-if __name__ == '__main__':
-    filter = {"time": "24H", "pert_id": ['BRD-U41416256', 'BRD-U60236422'], "pert_type": ["trt_cp"],
-              "cell_id": ['A375', 'HA1E', 'HELA', 'HT29', 'MCF7', 'PC3', 'YAPC'],
-              "pert_idose": ["0.04 um", "0.12 um", "0.37 um", "1.11 um", "3.33 um", "10.0 um"]}
-    ft, lb = read_data('../data/signature_train.csv', filter)
-    print(np.shape(ft))
-    print(np.shape(lb))
+    return data_df,test_data
