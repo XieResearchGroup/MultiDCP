@@ -57,11 +57,6 @@ def validation_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, 
     print(epoch_loss / steps_per_epoch)
     if USE_WANDB:
         wandb.log({'{0} Dev loss'.format(job): epoch_loss/steps_per_epoch}, step=epoch)
-    #rmse = metric.rmse(lb_np, predict_np)
-    # to get point wise evaluation 
-    #pred = np.argmax(predict_np,axis=1)
-    # pred = round(nn.Sigmoid()(predict_np))
-    # f1=metrics.f1_score(lb_np,pred,average='weighted')
     lb_np = lb_np.flatten()
     predict_np = predict_np.flatten()
     
@@ -78,23 +73,13 @@ def validation_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, 
     if USE_WANDB:
         wandb.log({'{0} Dev AUCPR'.format(job): aucpr}, step = epoch)
     
-    
- 
-    # metrics_summary['weighted_f1_{0}_dev'.format(job)].append(f1)
-    # print('{0} Weighted_f1: {1}'.format(job, f1))
-    # if USE_WANDB:
-    #     wandb.log({'{0} Dev Weighted F1'.format(job): f1}, step = epoch)
-
 def test_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, metrics_summary, job):
 
     print('{0} Test loss:'.format(job))
     print(epoch_loss / steps_per_epoch)
     if USE_WANDB:
         wandb.log({'{0} Test loss'.format(job): epoch_loss/steps_per_epoch}, step=epoch)
-    #rmse = metric.rmse(lb_np, predict_np)
-    # to get point wise evaluation 
-    # pred = round(nn.Sigmoid()(predict_np))
-    # f1=metrics.f1_score(lb_np,pred,average='weighted')
+
     lb_np = lb_np.flatten()
     predict_np = predict_np.flatten()
     
@@ -112,81 +97,29 @@ def test_epoch_end(epoch_loss, lb_np, predict_np, steps_per_epoch, epoch, metric
         wandb.log({'{0} Test AUCPR'.format(job): aucpr}, step = epoch)
     
   
- 
-    # metrics_summary['weighted_f1_{0}_test'.format(job)].append(f1)
-    # print('{0} Weighted_f1: {1}'.format(job, f1))
-    # if USE_WANDB:
-    #     wandb.log({'{0} Test Weighted F1'.format(job): f1}, step = epoch)
-    # print('{0} Test loss:'.format(job))
-    # print(epoch_loss / steps_per_epoch)
-    # if USE_WANDB:
-    #     wandb.log({'{0} Test Loss'.format(job): epoch_loss / steps_per_epoch}, step = epoch)
-    # rmse = metric.rmse(lb_np, predict_np)
-    # metrics_summary['rmse_list_{0}_test'.format(job)].append(rmse)
-    # print('{0} RMSE: {1}'.format(job, rmse))
-    # if USE_WANDB:
-    #     wandb.log({'{0} Test RMSE'.format(job): rmse} , step = epoch)
-    # pearson, _ = metric.correlation(lb_np, predict_np, 'pearson')
-    # metrics_summary['pearson_list_{0}_test'.format(job)].append(pearson)
-    # print('{0} Pearson\'s correlation: {1}'.format(job, pearson))
-    # if USE_WANDB:
-    #     wandb.log({'{0} Test Pearson'.format(job): pearson}, step = epoch)
-    # spearman, _ = metric.correlation(lb_np, predict_np, 'spearman')
-    # metrics_summary['spearman_list_{0}_test'.format(job)].append(spearman)
-    # print('{0} Spearman\'s correlation: {1}'.format(job, spearman))
-    # if USE_WANDB:
-    #     wandb.log({'{0} Test Spearman'.format(job): spearman}, step = epoch)
-    # ae_precision_test = []
-    # for k in PRECISION_DEGREE:
-    #     precision_neg, precision_pos = metric.precision_k(lb_np, predict_np, k)
-    #     print("{0} Precision@{1} Positive: {2}".format(job, k, precision_pos))
-    #     print("{0} Precision@{1} Negative: {2}".format(job, k, precision_neg))
-    #     ae_precision_test.append([precision_pos, precision_neg])
-    # metrics_summary['precisionk_list_{0}_test'.format(job)].append(ae_precision_test)
+
 
 def report_final_results(metrics_summary):
-    best_dev_epoch = np.argmax(metrics_summary['pearson_list_perturbed_dev'])
+    best_dev_epoch = np.argmax(metrics_summary['aucroc_list_perturbed_dev'])
   
-    print("Epoch %d got best Perturbed Pearson's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_perturbed_dev'][best_dev_epoch]))
-    print("Epoch %d got Perturbed Spearman's correlation on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_perturbed_dev'][best_dev_epoch]))
-    print("Epoch %d got Perturbed RMSE on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['rmse_list_perturbed_dev'][best_dev_epoch]))
-    print("Epoch %d got Perturbed P@100 POS and NEG on dev set: %.4f, %.4f" % (best_dev_epoch + 1,
-                                                                    metrics_summary['precisionk_list_perturbed_dev'][best_dev_epoch][-1][0],
-                                                                    metrics_summary['precisionk_list_perturbed_dev'][best_dev_epoch][-1][1]))
+    print("Epoch %d got aucroc on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['aucroc_list_perturbed_dev'][best_dev_epoch]))
+    print("Epoch %d got auprc on dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['aucpr_perturbed_dev'][best_dev_epoch]))
+   
 
-    # print("Epoch %d got AE Pearson's correlation on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_ae_test'][best_dev_epoch]))
-    # print("Epoch %d got AE Spearman's correlation on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_ae_test'][best_dev_epoch]))
-    # print("Epoch %d got AE RMSE on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['rmse_list_ae_test'][best_dev_epoch]))
-    # print("Epoch %d got AE P@100 POS and NEG on test set w.r.t dev set: %.4f, %.4f" % (best_dev_epoch + 1,
-    #                                                                 metrics_summary['precisionk_list_ae_test'][best_dev_epoch][-1][0],
-    #                                                                 metrics_summary['precisionk_list_ae_test'][best_dev_epoch][-1][1]))
+    print("Epoch %d got Perturbed aucroc on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['aucroc_list_perturbed_test'][best_dev_epoch]))
+    print("Epoch %d got Perturbed auprc on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['aucpr_perturbed_test'][best_dev_epoch]))
 
-    print("Epoch %d got Perturbed Pearson's correlation on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['pearson_list_perturbed_test'][best_dev_epoch]))
-    print("Epoch %d got Perturbed Spearman's correlation on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['spearman_list_perturbed_test'][best_dev_epoch]))
-    print("Epoch %d got Perturbed RMSE on test set w.r.t dev set: %.4f" % (best_dev_epoch + 1, metrics_summary['rmse_list_perturbed_test'][best_dev_epoch]))
-    print("Epoch %d got Perturbed P@100 POS and NEG on test set w.r.t dev set: %.4f, %.4f" % (best_dev_epoch + 1,
-                                                                    metrics_summary['precisionk_list_perturbed_test'][best_dev_epoch][-1][0],
-                                                                    metrics_summary['precisionk_list_perturbed_test'][best_dev_epoch][-1][1]))
+    best_test_epoch = np.argmax(metrics_summary['aucroc_list_perturbed_test'])
 
-    best_test_epoch = np.argmax(metrics_summary['pearson_list_perturbed_test'])
-    # print("Epoch %d got AE best Pearson's correlation on test set: %.4f" % (best_test_epoch + 1, metrics_summary['pearson_list_ae_test'][best_test_epoch]))
-    # print("Epoch %d got AE Spearman's correlation on test set: %.4f" % (best_test_epoch + 1, metrics_summary['spearman_list_ae_test'][best_test_epoch]))
-    # print("Epoch %d got AE RMSE on test set: %.4f" % (best_test_epoch + 1, metrics_summary['rmse_list_ae_test'][best_test_epoch]))
-    # print("Epoch %d got AE P@100 POS and NEG on test set: %.4f, %.4f" % (best_test_epoch + 1,
-    #                                                                 metrics_summary['precisionk_list_ae_test'][best_test_epoch][-1][0],
-    #                                                                 metrics_summary['precisionk_list_ae_test'][best_test_epoch][-1][1]))
 
-    print("Epoch %d got Perturbed best Pearson's correlation on test set: %.4f" % (best_test_epoch + 1, metrics_summary['pearson_list_perturbed_test'][best_test_epoch]))
-    print("Epoch %d got Perturbed Spearman's correlation on test set: %.4f" % (best_test_epoch + 1, metrics_summary['spearman_list_perturbed_test'][best_test_epoch]))
-    print("Epoch %d got Perturbed RMSE on test set: %.4f" % (best_test_epoch + 1, metrics_summary['rmse_list_perturbed_test'][best_test_epoch]))
-    print("Epoch %d got Perturbed P@100 POS and NEG on test set: %.4f, %.4f" % (best_test_epoch + 1,
-                                                                    metrics_summary['precisionk_list_perturbed_test'][best_test_epoch][-1][0],
-                                                                    metrics_summary['precisionk_list_perturbed_test'][best_test_epoch][-1][1]))
+    print("Epoch %d got Perturbed best aucroc on test set: %.4f" % (best_test_epoch + 1, metrics_summary['aucroc_list_perturbed_test'][best_test_epoch]))
+    print("Epoch %d got Perturbed auprc on test set: %.4f" % (best_test_epoch + 1, metrics_summary['aucpr_perturbed_test'][best_test_epoch]))
+
 
 def model_training(args, model, data, ae_data, metrics_summary):
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    best_dev_pearson = float("-inf")
+    best_dev_aucroc = float("-inf")
 
     for epoch in range(args.max_epoch):
     
@@ -210,22 +143,6 @@ def model_training(args, model, data, ae_data, metrics_summary):
         print(epoch_loss/(i+1))
         if USE_WANDB:
             wandb.log({'AE Train loss': epoch_loss/(i+1)}, step = epoch)
-
-        # model.eval()
-        # epoch_loss = 0
-        # lb_np = np.empty([0, 978])
-        # predict_np = np.empty([0, 978])
-        # with torch.no_grad():
-        #     for i, (feature, label, _) in enumerate(ae_data.val_dataloader()):
-        #         predict, _ = model(input_cell_gex=feature, job_id = 'ae', epoch = epoch)
-        #         loss = model.loss(label, predict)
-        #         epoch_loss += loss.item()
-        #         lb_np = np.concatenate((lb_np, label.cpu().numpy()), axis=0)
-        #         predict_np = np.concatenate((predict_np, predict.cpu().numpy()), axis=0)
-        #     validation_epoch_end(epoch_loss = epoch_loss, lb_np = lb_np, 
-        #                         predict_np = predict_np, steps_per_epoch = i+1, 
-        #                         epoch = epoch, metrics_summary = metrics_summary,
-        #                         job = 'ae')
 
         epoch_loss = 0
         for i, (ft, lb) in enumerate(data.train_dataloader()):
@@ -277,12 +194,11 @@ def model_training(args, model, data, ae_data, metrics_summary):
                                 epoch = epoch, metrics_summary = metrics_summary,
                                 job = 'perturbed')
 
-            # if best_dev_pearson < metrics_summary['pearson_list_perturbed_dev'][-1] or epoch == 1:
-            #     # data_save = True
-            #     best_dev_pearson = metrics_summary['pearson_list_perturbed_dev'][-1]
-            #     torch.save(model.multidcp.state_dict(), 'B_for_deepCOP_binary.pt')
+            if best_dev_aucroc < metrics_summary['aucroc_list_perturbed_dev'][-1] or epoch == 1:
+                # data_save = True
+                best_dev_aucroc = metrics_summary['aucroc_list_perturbed_dev'][-1]
+                torch.save(model.multidcp.state_dict(), args.model_save_path)
     
-
         epoch_loss = 0
         lb_np_ls = []
         predict_np_ls = []
@@ -319,38 +235,26 @@ if __name__ == '__main__':
     parser.add_argument('--expname', type= str, default='')
     parser.add_argument('--device',type=int, default=0)
     parser.add_argument('--drug_file',type = str, default="MultiDCP_data/data/all_drugs_l1000.csv")
-    #parser.add_argument('--drug_idx_train',type=str, default= "/raid/home/yoyowu/MultiDCP/MultiDCP/utils/train_idx.csv")
-    #parser.add_argument('--drug_idx_val',type=str, default= "/raid/home/yoyowu/MultiDCP/MultiDCP/utils/val_idx.csv")
-    #parser.add_argument('--drug_idx_test',type=str, default= "/raid/home/yoyowu/MultiDCP/MultiDCP/utils/test_idx.csv")
     parser.add_argument('--lr',type=float, default=2e-4)
-   
     parser.add_argument('--seed', type=int, default=343)
     parser.add_argument('--gene_file', type = str, default = "MultiDCP_data/data/gene_vector.csv")
-
-    #parser.add_argument('--cell_file', type= str, default= "MultiDCP_data/data/all_perturbed.csv")    
-    # parser.add_argument('--train_file', type= str, default= "MultiDCP_data/data/pert_transcriptom/signature_train_cell_1.csv")
-    # parser.add_argument('--dev_file', type=str, default ="MultiDCP_data/data/pert_transcriptom/signature_dev_cell_1.csv" )
-    # parser.add_argument('--test_file', type=str, default="MultiDCP_data/data/pert_transcriptom/signature_test_cell_1.csv")
-    parser.add_argument('--train_file', type= str, default= "/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/up_signature_train_1.csv")
-    parser.add_argument('--dev_file', type=str, default ="/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/up_signature_dev_1.csv" )
-    parser.add_argument('--test_file', type=str, default="/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/up_signature_test_1.csv")
+    parser.add_argument('--train_file', type= str, default= "/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/down_signature_train_2.csv")
+    parser.add_argument('--dev_file', type=str, default ="/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/down_signature_dev_2.csv" )
+    parser.add_argument('--test_file', type=str, default="/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/down_signature_test_2.csv")
     parser.add_argument('--batch_size', type = int, default=64)
     parser.add_argument('--ae_input_file',type=str, default= "MultiDCP_data/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4" )
     parser.add_argument('--ae_label_file', type=str, default="MultiDCP_data/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4")
     parser.add_argument('--cell_ge_file',type=str,default="MultiDCP_data/data/adjusted_ccle_tcga_ad_tpm_log2.csv",
                         help='the file which used to map cell line to gene expression file', )
-
     parser.add_argument('--max_epoch', type = int, default=500)
     parser.add_argument('--predicted_result_for_testset',  type=str, default="MultiDCP_data/data/teacher_student/teach_stu_perturbedGX.csv")
     parser.add_argument('--hidden_repr_result_for_testset', type=str, default = "MultiDCP_data/data/teacher_student/teach_stu_perturbedGX_hidden.csv" ,
                         help = "the file directory to save the test data hidden representation dataframe")
     parser.add_argument('--all_cells', type=str, default= "MultiDCP_data/data/ccle_tcga_ad_cells.p")
-
     parser.add_argument('--dropout', type=float, default=0.1)
     parser.add_argument('--linear_encoder_flag', dest = 'linear_encoder_flag', action='store_true', default=False,
                         help = 'whether the cell embedding layer only have linear layers')
-    parser.add_argument('--all_signature',type=str, default='/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/pert_transcriptom/signature_total.csv')
-    parser.add_argument('--direction',type=str, default='Up')
+    parser.add_argument('--model_save_path',type=str, default='')
     args = parser.parse_args()
 
     seed = args.seed
@@ -402,20 +306,12 @@ if __name__ == '__main__':
 
     # training
     metrics_summary = defaultdict(
-      
         aucroc_list_perturbed_dev = [],
         aucroc_list_perturbed_test = [],
-      
-        
-    
         aucpr_perturbed_dev = [],
-        aucpr_perturbed_test = [],
-     
-        weighted_f1_perturbed_dev = [],
-        weighted_f1_perturbed_test = [],
-    )
+        aucpr_perturbed_test = [])
 
     model_training(args, model, data, ae_data, metrics_summary)
-    #report_final_results(metrics_summary)
+    report_final_results(metrics_summary)
     end_time = datetime.now()
     print(end_time - start_time)
