@@ -180,10 +180,10 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
     drug_target_feature = []
     pert_type_set = sorted(list(set(feature[:, 1])))
     cell_id_set = sorted(list(set(feature[:, 2])))
-    pert_idose_set = sorted(list(set(feature[:, 3])))
+    #pert_idose_set = sorted(list(set(feature[:, 3])))
     # pert_type_set = ['trt_cp']
     # cell_id_set = ['HA1E', 'HT29', 'MCF7', 'YAPC', 'HELA', 'PC3', 'A375']
-    #pert_idose_set = ['1.11 um', '0.37 um', '10.0 um', '0.04 um', '3.33 um', '0.12 um']
+    pert_idose_set = ['1.11 um', '0.37 um', '10.0 um', '0.04 um', '3.33 um', '0.12 um']
     use_pert_type = False
     use_cell_id = True ## cell feature will always used
     use_pert_idose = False
