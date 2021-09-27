@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-exp=0924_binary_split3_up
-python /raid/home/yoyowu/MultiDCP/MultiDCP/multidcp_ae.py --device 4 \
+exp=0926_binary_split1_down
+python /raid/home/yoyowu/MultiDCP/MultiDCP/multidcp_ae.py --device 5 \
 --exp ${exp} \
 --model_save_path "/raid/home/yoyowu/MultiDCP/saved_models/${exp}.pt" \
 --drug_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/all_drugs_l1000.csv" \
---gene_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/gene_vector.csv"  --train_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/up_signature_train_3.csv" \
---dev_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/up_signature_dev_3.csv"  --test_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/up_signature_test_3.csv"  \
+--gene_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/gene_vector.csv"  --train_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/down_signature_train_1.csv" \
+--dev_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/down_signature_dev_1.csv"  --test_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/ranking_binary/down_signature_test_1.csv"  \
 --dropout 0.3 --batch_size 64 --max_epoch 500 \
 --ae_input_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4" \
 --ae_label_file "/raid/home/yoyowu/MultiDCP/MultiDCP_data/data/gene_expression_for_ae/gene_expression_combat_norm_978_split4" \
