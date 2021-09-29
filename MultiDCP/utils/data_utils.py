@@ -9,28 +9,6 @@ import warnings
 from sklearn.model_selection import train_test_split, StratifiedKFold
 warnings.filterwarnings("ignore")
 
-problem_set = {'12-Distearoyllecithin,trt_cp,1119_TCX,10.0 um',
- '12-icosapentoyl-sn-glycero-3-phosphoserine,trt_cp,1119_TCX,10.0 um',
- '1alpha24S-Dihydroxyvitamin D2,trt_cp,1119_TCX,10.0 um',
- '2-Amino-1-methyl-6-phenylimidazo(45-b)pyridine,trt_cp,1119_TCX,10.0 um',
- "22'-Dibenzothiazyl disulfide,trt_cp,1119_TCX,10.0 um",
- '22-bis(4-hydroxy-3-tert-butylphenyl)propane,trt_cp,1119_TCX,10.0 um',
- '24-thiazolidinedione,trt_cp,1119_TCX,10.0 um',
- "33'-diindolylmethane,trt_cp,1119_TCX,10.0 um",
- '34-Methylenedioxy-N-isopropylamphetamine,trt_cp,1119_TCX,10.0 um',
- '35-diiodothyropropionic acid,trt_cp,1119_TCX,10.0 um',
- "4'-Methylene-5810-trideazaaminopterin,trt_cp,1119_TCX,10.0 um",
- '5-amino-134-thiadiazole-2-thiol,trt_cp,1119_TCX,10.0 um',
- '8-cyclopentyl-13-dipropylxanthine,trt_cp,1119_TCX,10.0 um',
- 'Carfentanil C-11,trt_cp,1119_TCX,10.0 um',
- 'Isoquinoline 7-(2-(36-dihydro-4-(3-(trifluoromethyl)phenyl)-1(2h)-pyridinyl)ethyl)-,trt_cp,1119_TCX,10.0 um',
- "N-Cyclohexyl-N'-phenyl-14-phenylenediamine,trt_cp,1119_TCX,10.0 um",
- 'Penequinine Penehyclidine,trt_cp,1119_TCX,10.0 um',
- 'Sar9 Met (O2)11-Substance P,trt_cp,1119_TCX,10.0 um',
- "Sodium 12-Dipalmitoyl-sn-glycero-3-phospho-(1'-rac-glycerol),trt_cp,1119_TCX,10.0 um",
- 'Sodium phosphate dibasic,trt_cp,1119_TCX,10.0 um',
- 'Sodium phosphate monobasic,trt_cp,1119_TCX,10.0 um',
- 'UK-396082,trt_cp,1119_TCX,10.0 um'}
 
 def read_drug_number(input_file, num_feature):
     drug = []
@@ -156,7 +134,7 @@ def read_data(input_file, filter):
                 data[ft] = [lb]
                     
     for ft, lb in sorted(data.items()):
-        #lb = np.array(lb)
+    
         ft = ft.split(',')
         feature.append(ft)
         labels.append(lb[0])
@@ -180,10 +158,10 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
     drug_target_feature = []
     pert_type_set = sorted(list(set(feature[:, 1])))
     cell_id_set = sorted(list(set(feature[:, 2])))
-    #pert_idose_set = sorted(list(set(feature[:, 3])))
+    pert_idose_set = sorted(list(set(feature[:, 3])))
     # pert_type_set = ['trt_cp']
     # cell_id_set = ['HA1E', 'HT29', 'MCF7', 'YAPC', 'HELA', 'PC3', 'A375']
-    pert_idose_set = ['1.11 um', '0.37 um', '10.0 um', '0.04 um', '3.33 um', '0.12 um']
+    # pert_idose_set = ['1.11 um', '0.37 um', '10.0 um', '0.04 um', '3.33 um', '0.12 um']
     use_pert_type = False
     use_cell_id = True ## cell feature will always used
     use_pert_idose = False
@@ -191,18 +169,14 @@ def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expressio
         pert_type_dict = dict(zip(pert_type_set, list(range(len(pert_type_set)))))
         final_pert_type_feature = []
         use_pert_type = True
-    #if len(cell_id_set) > 1:
-    cell_id_dict = dict(zip(cell_id_set, list(range(len(cell_id_set)))))
-    final_cell_id_feature = []
-    use_cell_id = True
-   # for deepCOP eval
-    pert_idose_dict = dict(zip(pert_idose_set, list(range(len(pert_idose_set)))))
-    final_pert_idose_feature = []
-    use_pert_idose = True
-    #if len(pert_idose_set) > 1:
-        # pert_idose_dict = dict(zip(pert_idose_set, list(range(len(pert_idose_set)))))
-        # final_pert_idose_feature = []
-        # use_pert_idose = True
+    if len(cell_id_set) > 1:
+        cell_id_dict = dict(zip(cell_id_set, list(range(len(cell_id_set)))))
+        final_cell_id_feature = []
+        use_cell_id = True
+    if len(pert_idose_set) > 1:
+        pert_idose_dict = dict(zip(pert_idose_set, list(range(len(pert_idose_set)))))
+        final_pert_idose_feature = []
+        use_pert_idose = True
     print('Feature Summary (printing from data_utils):')
     print(pert_type_set)
     print(cell_id_set)
@@ -313,7 +287,7 @@ def binary_transfer(input_file,save_path_up,save_path_down):
     label = np.asarray(label, dtype=np.float64)
     feature= np.asarray(feature)
     label_sort_set = np.argsort(label,axis=1)
-    neg_set = label_sort_set[:,:50]
+    neg_set = label_sort_set[:,:50]   # use 5% ranking as neg/pos 
     pos_set = label_sort_set[:, -50:]
     down_label = np.zeros([len(label),978])
     up_label = np.zeros([len(label),978])
