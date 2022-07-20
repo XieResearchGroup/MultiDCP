@@ -106,6 +106,38 @@ def split_data_by_pert_id(pert_id):
     return train_pert_id, dev_pert_id, test_pert_id
 
 
+
+def read_data_binary(input_file, filter):
+    """
+    :param input_file: including the time, pertid, perttype, cellid, dosage and the perturbed gene expression file (label)
+    :param filter: help to check whether the pertid is in the research scope, cells in the research scope ...
+    :return: the features, labels and cell type
+    """
+    feature = []
+    labels = []
+    
+    data = dict()
+    pert_id = []
+    with open(input_file, 'r') as f:
+        f.readline()  # skip header
+        for line in f:
+            line = line.strip().split(',')
+           
+            ft = ','.join(line[0:4])
+            lb = [i for i in line[4:]]
+            if ft in data.keys():
+                data[ft].append(lb)
+            else:
+                data[ft] = [lb]
+                    
+    for ft, lb in sorted(data.items()):
+    
+        ft = ft.split(',')
+        feature.append(ft)
+        labels.append(lb[0])
+    
+    return np.asarray(feature), np.asarray(labels,dtype=np.float64)
+
 def read_data(input_file, filter):
     """
     :param input_file: including the time, pertid, perttype, cellid, dosage and the perturbed gene expression file (label)
@@ -141,6 +173,73 @@ def read_data(input_file, filter):
             label.append(lb)
     _, cell_type = np.unique(np.asarray([x[2] for x in feature]), return_inverse=True)
     return np.asarray(feature), np.asarray(label, dtype=np.float64), cell_type
+
+def transform_to_tensor_per_dataset_binary(feature, label, drug,device, basal_expression_file):
+
+    '''
+    for binary classification task only 
+    '''
+
+    if not basal_expression_file.endswith('csv'):
+        basal_expression_file += '.csv'
+    basal_cell_line_expression_feature_csv = pd.read_csv(basal_expression_file, index_col = 0)
+    drug_feature = []
+    drug_target_feature = []
+    pert_type_set = sorted(list(set(feature[:, 1])))
+    cell_id_set = sorted(list(set(feature[:, 2])))
+    pert_idose_set = sorted(list(set(feature[:, 3])))
+    # pert_type_set = ['trt_cp']
+    # cell_id_set = ['HA1E', 'HT29', 'MCF7', 'YAPC', 'HELA', 'PC3', 'A375']
+    # pert_idose_set = ['1.11 um', '0.37 um', '10.0 um', '0.04 um', '3.33 um', '0.12 um']
+    use_pert_type = False
+    use_cell_id = True ## cell feature will always used
+    use_pert_idose = False
+    if len(pert_type_set) > 1:
+        pert_type_dict = dict(zip(pert_type_set, list(range(len(pert_type_set)))))
+        final_pert_type_feature = []
+        use_pert_type = True
+    if len(cell_id_set) > 1:
+        cell_id_dict = dict(zip(cell_id_set, list(range(len(cell_id_set)))))
+        final_cell_id_feature = []
+        use_cell_id = True
+    if len(pert_idose_set) > 1:
+        pert_idose_dict = dict(zip(pert_idose_set, list(range(len(pert_idose_set)))))
+        final_pert_idose_feature = []
+        use_pert_idose = True
+    print('Feature Summary (printing from data_utils):')
+    print(pert_type_set)
+    print(cell_id_set)
+    print(pert_idose_set)
+
+    for i, ft in enumerate(feature):
+        drug_fp = drug[ft[0]]
+        drug_feature.append(drug_fp)
+        if use_pert_type:
+            pert_type_feature = np.zeros(len(pert_type_set))
+            pert_type_feature[pert_type_dict[ft[1]]] = 1
+            final_pert_type_feature.append(np.array(pert_type_feature, dtype=np.float64))
+        if use_cell_id:
+            # cell_id_feature = np.zeros(len(cell_id_set))
+            # cell_id_feature[cell_id_dict[ft[2]]] = 1
+            cell_id_feature = basal_cell_line_expression_feature_csv.loc[ft[2],:] ## new_code
+            final_cell_id_feature.append(np.array(cell_id_feature, dtype=np.float64))
+      
+        if use_pert_idose:
+            pert_idose_feature = np.zeros(len(pert_idose_set))
+            pert_idose_feature[pert_idose_dict[ft[3]]] = 1
+            final_pert_idose_feature.append(np.array(pert_idose_feature, dtype=np.float64))
+      
+
+    feature_dict = dict()
+    feature_dict['drug'] = np.asarray(drug_feature)
+    if use_pert_type:
+        feature_dict['pert_type'] = torch.from_numpy(np.asarray(final_pert_type_feature, dtype=np.float64)).to(device)
+    if use_cell_id:
+        feature_dict['cell_id'] = torch.from_numpy(np.asarray(final_cell_id_feature, dtype=np.float64)).to(device)
+    if use_pert_idose:
+        feature_dict['pert_idose'] = torch.from_numpy(np.asarray(final_pert_idose_feature, dtype=np.float64)).to(device)
+    label_binary = torch.from_numpy(label).to(device)
+    return feature_dict, label_binary, use_pert_type, use_cell_id, use_pert_idose
 
 def transform_to_tensor_per_dataset(feature, label, drug,device, basal_expression_file):
 
@@ -243,133 +342,7 @@ def transfrom_to_tensor(feature_train, label_train, feature_dev, label_dev, feat
            test_label_regression, use_pert_type_train, use_cell_id_train, use_pert_idose_train
 
 
-# def transfrom_to_tensor(feature_train, label_train, feature_dev, label_dev, feature_test, label_test, drug,
-#                         device, file_name):
 
-#     """
-#     :param feature_train: features like pertid, dosage, cell id, etc. will be used to transfer to tensor over here
-#     :param label_train:
-#     :param feature_dev:
-#     :param label_dev:
-#     :param feature_test:
-#     :param label_test:
-#     :param drug: ??? a drug dictionary mapping drug name into smile strings
-#     :param device: save on gpu device if necessary
-#     :return:
-#     """
-#     # file_name = 'ccle_gene_expression_file.csv'
-#     # file_name = 'ccle_gene_expression_2176.csv'
-#     if not file_name.endswith('csv'):
-#         file_name += '.csv'
-#     cell_line_expression_feature_csv = pd.read_csv(file_name, index_col = 0)
-#     train_drug_feature = []
-#     dev_drug_feature = []
-#     test_drug_feature = []
-#     train_drug_target_feature = []
-#     dev_drug_target_feature = []
-#     test_drug_target_feature = []
-#     pert_type_set = sorted(list(set(feature_train[:, 1])))
-#     cell_id_set = sorted(list(set(feature_train[:, 2])))
-#     pert_idose_set = sorted(list(set(feature_train[:, 3])))
-#     # pert_type_set = ['trt_cp']
-#     # cell_id_set = ['HA1E', 'HT29', 'MCF7', 'YAPC', 'HELA', 'PC3', 'A375']
-#     # pert_idose_set = ['1.11 um', '0.37 um', '10.0 um', '0.04 um', '3.33 um', '0.12 um']
-#     use_pert_type = False
-#     use_cell_id = False
-#     use_pert_idose = False
-#     if len(pert_type_set) > 1:
-#         pert_type_dict = dict(zip(pert_type_set, list(range(len(pert_type_set)))))
-#         train_pert_type_feature = []
-#         dev_pert_type_feature = []
-#         test_pert_type_feature = []
-#         use_pert_type = True
-#     if len(cell_id_set) > 1:
-#         cell_id_dict = dict(zip(cell_id_set, list(range(len(cell_id_set)))))
-#         train_cell_id_feature = []
-#         dev_cell_id_feature = []
-#         test_cell_id_feature = []
-#         use_cell_id = True
-#     if len(pert_idose_set) > 1:
-#         pert_idose_dict = dict(zip(pert_idose_set, list(range(len(pert_idose_set)))))
-#         train_pert_idose_feature = []
-#         dev_pert_idose_feature = []
-#         test_pert_idose_feature = []
-#         use_pert_idose = True
-#     print('Feature Summary:')
-#     print(pert_type_set)
-#     print(cell_id_set)
-#     print(pert_idose_set)
-
-#     for i, ft in enumerate(feature_train):
-#         drug_fp = drug[ft[0]]
-#         train_drug_feature.append(drug_fp)
-#         if use_pert_type:
-#             pert_type_feature = np.zeros(len(pert_type_set))
-#             pert_type_feature[pert_type_dict[ft[1]]] = 1
-#             train_pert_type_feature.append(np.array(pert_type_feature, dtype=np.float64))
-#         if use_cell_id:
-#             # cell_id_feature = np.zeros(len(cell_id_set))
-#             # cell_id_feature[cell_id_dict[ft[2]]] = 1
-#             cell_id_feature = cell_line_expression_feature_csv.loc[ft[2],:] ## new_code
-#             train_cell_id_feature.append(np.array(cell_id_feature, dtype=np.float64))
-#         if use_pert_idose:
-#             pert_idose_feature = np.zeros(len(pert_idose_set))
-#             pert_idose_feature[pert_idose_dict[ft[3]]] = 1
-#             train_pert_idose_feature.append(np.array(pert_idose_feature, dtype=np.float64))
-
-#     for i, ft in enumerate(feature_dev):
-#         drug_fp = drug[ft[0]]
-#         dev_drug_feature.append(drug_fp)
-#         if use_pert_type:
-#             pert_type_feature = np.zeros(len(pert_type_set))
-#             pert_type_feature[pert_type_dict[ft[1]]] = 1
-#             dev_pert_type_feature.append(np.array(pert_type_feature, dtype=np.float64))
-#         if use_cell_id:
-#             cell_id_feature = cell_line_expression_feature_csv.loc[ft[2],:]
-#             dev_cell_id_feature.append(np.array(cell_id_feature, dtype=np.float64))
-#         if use_pert_idose:
-#             pert_idose_feature = np.zeros(len(pert_idose_set))
-#             pert_idose_feature[pert_idose_dict[ft[3]]] = 1
-#             dev_pert_idose_feature.append(np.array(pert_idose_feature, dtype=np.float64))
-
-#     for i, ft in enumerate(feature_test):
-#         drug_fp = drug[ft[0]]
-#         test_drug_feature.append(drug_fp)
-#         if use_pert_type:
-#             pert_type_feature = np.zeros(len(pert_type_set))
-#             pert_type_feature[pert_type_dict[ft[1]]] = 1
-#             test_pert_type_feature.append(np.array(pert_type_feature, dtype=np.float64))
-#         if use_cell_id:
-#             cell_id_feature = cell_line_expression_feature_csv.loc[ft[2],:]
-#             test_cell_id_feature.append(np.array(cell_id_feature, dtype=np.float64))
-#         if use_pert_idose:
-#             pert_idose_feature = np.zeros(len(pert_idose_set))
-#             pert_idose_feature[pert_idose_dict[ft[3]]] = 1
-#             test_pert_idose_feature.append(np.array(pert_idose_feature, dtype=np.float64))
-
-#     train_feature = dict()
-#     dev_feature = dict()
-#     test_feature = dict()
-#     train_feature['drug'] = np.asarray(train_drug_feature)
-#     dev_feature['drug'] = np.asarray(dev_drug_feature)
-#     test_feature['drug'] = np.asarray(test_drug_feature)
-#     if use_pert_type:
-#         train_feature['pert_type'] = torch.from_numpy(np.asarray(train_pert_type_feature, dtype=np.float64)).to(device)
-#         dev_feature['pert_type'] = torch.from_numpy(np.asarray(dev_pert_type_feature, dtype=np.float64)).to(device)
-#         test_feature['pert_type'] = torch.from_numpy(np.asarray(test_pert_type_feature, dtype=np.float64)).to(device)
-#     if use_cell_id:
-#         train_feature['cell_id'] = torch.from_numpy(np.asarray(train_cell_id_feature, dtype=np.float64)).to(device)
-#         dev_feature['cell_id'] = torch.from_numpy(np.asarray(dev_cell_id_feature, dtype=np.float64)).to(device)
-#         test_feature['cell_id'] = torch.from_numpy(np.asarray(test_cell_id_feature, dtype=np.float64)).to(device)
-#     if use_pert_idose:
-#         train_feature['pert_idose'] = torch.from_numpy(np.asarray(train_pert_idose_feature, dtype=np.float64)).to(device)
-#         dev_feature['pert_idose'] = torch.from_numpy(np.asarray(dev_pert_idose_feature, dtype=np.float64)).to(device)
-#         test_feature['pert_idose'] = torch.from_numpy(np.asarray(test_pert_idose_feature, dtype=np.float64)).to(device)
-#     train_label_regression = torch.from_numpy(label_train).to(device)
-#     dev_label_regression = torch.from_numpy(label_dev).to(device)
-#     test_label_regression = torch.from_numpy(label_test).to(device)
-#     return train_feature, dev_feature, test_feature, train_label_regression, dev_label_regression, \
-#            test_label_regression, use_pert_type, use_cell_id, use_pert_idose
 
 
 if __name__ == '__main__':

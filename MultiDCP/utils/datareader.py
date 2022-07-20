@@ -9,11 +9,6 @@ from torch.utils.data import random_split, DataLoader, Dataset
 import pytorch_lightning as pl
 warnings.filterwarnings("ignore")
 
-seed = 343
-np.random.seed(seed=seed)
-random.seed(a=seed)
-torch.manual_seed(seed)
-
 class AEDataDataset(Dataset):
 
     def __init__(self, input_file_name, label_file_name, device):
@@ -266,6 +261,86 @@ class DataReader(object):
             if self.use_pert_idose:
                 output['pert_idose'] = feature['pert_idose'][excerpt]
             yield output, label[excerpt], cell_type[excerpt]
+
+class PerturbedDatasetBinary(Dataset):
+
+    def __init__(self, drug_file, data_file, data_filter, device,cell_ge_file_name):
+        self.device = device
+        self.drug, self.drug_dim = data_utils.read_drug_string(drug_file)
+        feature, label = data_utils.read_data_binary(data_file, data_filter)
+        self.feature, self.label, self.use_pert_type, self.use_cell_id, self.use_pert_idose = \
+            data_utils.transform_to_tensor_per_dataset_binary(feature, label, self.drug, self.device, cell_ge_file_name)
+
+    def __len__(self):
+        return self.feature['drug'].shape[0]
+
+    def __getitem__(self, idx):
+        output = dict()
+        output['drug'] = self.feature['drug'][idx]
+        if self.use_cell_id:
+            output['cell_id'] = self.feature['cell_id'][idx]
+        if self.use_pert_idose:
+            output['pert_idose'] = self.feature['pert_idose'][idx]
+        return output, self.label[idx]
+
+class PerturbedDataLoaderBinary(pl.LightningDataModule):
+
+    def __init__(self, data_filter, device, args):
+        super(PerturbedDataLoader, self).__init__()
+        self.batch_size = args.batch_size
+        self.train_data_file = args.train_file
+        self.dev_data_file = args.dev_file
+        self.test_data_file = args.test_file
+        self.drug_file = args.drug_file
+        self.data_filter = data_filter
+        self.device = device
+        self.cell_ge_file_name = args.cell_ge_file
+        self.gene = data_utils.read_gene(args.gene_file, self.device)
+        # self.gene_cutoffs_down = gene_cutoffs_down
+        # self.gene_cutoffs_up = gene_cutoffs_up
+        # self.all_genes = all_genes
+        # self.direction = args.direction
+    def collate_fn(self, batch):
+        features = {}
+        features['drug'] = data_utils.convert_smile_to_feature([output['drug'] for output, _ in batch], self.device)
+        features['mask'] = data_utils.create_mask_feature(features['drug'], self.device)
+        for key in batch[0][0].keys():
+            if key == 'drug':
+                continue
+            features[key] = torch.stack([output[key] for output, _ in batch], dim = 0)
+        labels = torch.stack([label for _, label in batch], dim = 0)
+        #cell_types = torch.Tensor([cell_type for _, _, cell_type in batch])
+        return features, labels
+    def prepare_data(self):
+        '''
+        Use this method to do things that might write to disk or that need to be \
+            done only from a single GPU in distributed settings.
+        how to download(), tokenize, the processed file need to be saved to disk to be accessed by other processes
+        prepare_data is called from a single GPU. Do not use it to assign state (self.x = y).
+        '''
+        pass
+
+    def setup(self, stage = None):
+      
+        self.train_data = PerturbedDatasetBinary(self.drug_file, self.train_data_file,
+                self.data_filter, self.device, self.cell_ge_file_name)
+        self.dev_data = PerturbedDatasetBinary(self.drug_file, self.dev_data_file,
+                self.data_filter, self.device, self.cell_ge_file_name)
+        self.test_data = PerturbedDatasetBinary(self.drug_file, self.test_data_file,
+                self.data_filter, self.device, self.cell_ge_file_name)
+        
+        self.use_pert_type = self.train_data.use_pert_type
+        self.use_cell_id = self.train_data.use_cell_id
+        self.use_pert_idose = self.train_data.use_pert_idose
+    
+    def train_dataloader(self):
+        return DataLoader(self.train_data, batch_size = self.batch_size, shuffle = True, collate_fn = self.collate_fn)
+
+    def val_dataloader(self):
+        return DataLoader(self.dev_data, batch_size = self.batch_size, collate_fn = self.collate_fn)
+    
+    def test_dataloader(self):
+        return DataLoader(self.test_data, batch_size = self.batch_size, collate_fn = self.collate_fn)
 
 class AEDataReader(object):
 

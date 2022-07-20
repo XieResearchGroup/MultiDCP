@@ -143,7 +143,7 @@ class MultiDCP(nn.Module):
         self.gene_embed = nn.Linear(self.gene_input_dim, self.gene_emb_dim)
         self.drug_gene_attn = DrugGeneAttention(self.gene_emb_dim, self.gene_emb_dim, n_layers=2, n_heads=4, pf_dim=512,
                                                 dropout=self.dropout, device=device)
-        
+        self.cell_id_emb_dim = 50
         if self.linear_encoder_flag:
             self.encoder = LinearEncoder(self.cell_id_input_dim)
         else:
@@ -222,7 +222,7 @@ class MultiDCPBase(nn.Module):
         self.initializer = model_param_registry['initializer']
         self.device = device
 
-    def init_weights(self, pretrained = False):
+    def init_weights(self, pretrained = None):
         print('Initialized multidcp\'s weight............')
         if self.initializer is None:
             return
@@ -233,7 +233,7 @@ class MultiDCPBase(nn.Module):
                 else:
                     self.initializer(parameter)
         if pretrained:
-            self.multidcp.load_state_dict(torch.load('best_model_ehill_storage_'))
+            self.multidcp.load_state_dict(torch.load(pretrained))
 
     def loss(self, label, predict):
         if self.loss_type == 'point_wise_mse':

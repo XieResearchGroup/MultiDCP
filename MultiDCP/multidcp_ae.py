@@ -4,6 +4,7 @@ import pandas as pd
 import sys
 from datetime import datetime
 import torch
+import random 
 from torch import save
 import numpy as np
 import argparse
@@ -20,11 +21,7 @@ import warnings
 warnings.filterwarnings("ignore")
 from multidcp_ae_utils import *
 
-USE_WANDB = False
-if USE_WANDB:
-    wandb.init(project="MultiDCP_AE_loss")
-else:
-    os.environ["WANDB_MODE"] = "dryrun"
+
 
 # check cuda
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -218,11 +215,16 @@ if __name__ == '__main__':
     parser.add_argument('--hidden_repr_result_for_testset', help = "the file directory to save the test data hidden representation dataframe")
     parser.add_argument('--all_cells')
     parser.add_argument('--dropout', type=float)
+    parser.add_argument('--seed',type=int)
+    parser.add_argument('--pretrained_model', type=str, default=None, help='add pretrained model path here if using pretrained model')
     parser.add_argument('--linear_encoder_flag', dest = 'linear_encoder_flag', action='store_true', default=False,
                         help = 'whether the cell embedding layer only have linear layers')
 
     args = parser.parse_args()
-
+    seed = args.seed
+    np.random.seed(seed=seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
     all_cells = list(pickle.load(open(args.all_cells, 'rb')))
     DATA_FILTER = {"time": "24H", "pert_id": ['BRD-U41416256', 'BRD-U60236422','BRD-U01690642','BRD-U08759356','BRD-U25771771', 'BRD-U33728988', 'BRD-U37049823',
                 'BRD-U44618005', 'BRD-U44700465','BRD-U51951544', 'BRD-U66370498','BRD-U68942961', 'BRD-U73238814',
@@ -253,12 +255,17 @@ if __name__ == '__main__':
     # model creation
     print('--------------with linear encoder: {0!r}--------------'.format(args.linear_encoder_flag))
     model = multidcp.MultiDCP_AE(device=device, model_param_registry=model_param_registry)
-    model.init_weights(pretrained = False)
+    model.init_weights(pretrained = args.pretrained_model)
     model.to(device)
     model = model.double()     
-
+    USE_WANDB = True
     if USE_WANDB:
+        wandb.init(project="MultiDCP_AE_loss", config=args)
         wandb.watch(model, log="all")
+    else:
+        os.environ["WANDB_MODE"] = "dryrun"
+       
+        
 
     # training
     metrics_summary = defaultdict(
