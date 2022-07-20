@@ -17,3 +17,8 @@ graphs/*
 *history_log*
 *wandb*
 *AMPAD_data*
+*.csv
+*.json
+*.ipynb
+*.log 
+*.p
