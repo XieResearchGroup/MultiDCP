@@ -146,7 +146,7 @@ class EhillDataset(Dataset):
         self.drug, self.drug_dim = data_utils.read_drug_string(drug_file)
         feature, label, self.cell_type = data_utils.read_data(data_file, data_filter)
         self.feature, self.label, self.use_pert_type, self.use_cell_id, self.use_pert_idose = \
-            data_utils.transform_to_tensor_per_dataset(feature, label, self.drug, self.device, cell_ge_file_name)
+            data_utils.transform_to_tensor_per_dataset_ehill(feature, label, self.drug, self.device, cell_ge_file_name)
 
     def __len__(self):
         return self.feature['drug'].shape[0]
@@ -196,15 +196,15 @@ class EhillDataLoader(pl.LightningDataModule):
         pass
 
     def setup(self, stage = None):
-        self.train_data = EhillDataset(self.drug_file, self.train_data_file,
-                 self.data_filter, self.device, self.cell_ge_file_name)
-        self.dev_data = EhillDataset(self.drug_file, self.dev_data_file,
-                 self.data_filter, self.device, self.cell_ge_file_name)
-        self.test_data = EhillDataset(self.drug_file, self.test_data_file,
-                 self.data_filter, self.device, self.cell_ge_file_name)
-        self.use_pert_type = self.train_data.use_pert_type
-        self.use_cell_id = self.train_data.use_cell_id
-        self.use_pert_idose = self.train_data.use_pert_idose
+            # self.train_data = EhillDataset(self.drug_file, self.train_data_file,
+            #          self.data_filter, self.device, self.cell_ge_file_name)
+            # self.dev_data = EhillDataset(self.drug_file, self.dev_data_file,
+            #          self.data_filter, self.device, self.cell_ge_file_name)
+            self.test_data = EhillDataset(self.drug_file, self.test_data_file,
+                    self.data_filter, self.device, self.cell_ge_file_name)
+            self.use_pert_type = self.test_data.use_pert_type
+            self.use_cell_id = self.test_data.use_cell_id
+            self.use_pert_idose = self.test_data.use_pert_idose
     
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size = self.batch_size, shuffle = True, collate_fn = self.collate_fn)
