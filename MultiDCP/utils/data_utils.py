@@ -153,7 +153,7 @@ def read_data(input_file, filter):
         for line in f:
             line = line.strip().split(',')
             # assert len(line) == 983 or len(line) == 7 or len(line) == 6, "Wrong format"
-            if filter and filter["time"] in line[0] and line[1] not in filter['pert_id'] and line[2] in filter["pert_type"] \
+            if filter["time"] in line[0] and line[1] not in filter['pert_id'] and line[2] in filter["pert_type"] \
                         and line[3] in filter['cell_id'] and line[4] in filter["pert_idose"] : # filter["time"] in line[0] and 
                 ft = ','.join(line[1:5])
                 lb = [float(i) for i in line[5:]]
@@ -161,13 +161,13 @@ def read_data(input_file, filter):
                     data[ft].append(lb)
                 else:
                     data[ft] = [lb]
-            else:
-                ft = ','.join(line[1:5])
-                lb = [float(i) for i in line[5:]]
-                if ft in data.keys():
-                    data[ft].append(lb)
-                else:
-                    data[ft] = [lb]
+            # else:
+            #     ft = ','.join(line[1:5])
+            #     lb = [float(i) for i in line[5:]]
+            #     if ft in data.keys():
+            #         data[ft].append(lb)
+            #     else:
+            #         data[ft] = [lb]
     for ft, lb in sorted(data.items()):
         ft = ft.split(',')
         feature.append(ft)
