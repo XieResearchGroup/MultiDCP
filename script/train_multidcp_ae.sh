@@ -10,4 +10,4 @@ CUDA_VISIBLE_DEVICES=3 python ../MultiDCP/multidcp_ae.py --drug_file "../MultiDC
 --hidden_repr_result_for_testset "../MultiDCP/data/teacher_student/teach_stu_perturbedGX_hidden.csv" \
 --cell_ge_file "../MultiDCP/data/adjusted_ccle_tcga_ad_tpm_log2.csv" \
 --all_cells "../MultiDCP/data/ccle_tcga_ad_cells.p" \
-# > ../MultiDCP/output/cellwise_output_ran5.txt
+ > /raid/home/yoyowu/MultiDCP/MultiDCP/outlogs/0423issue2.log 2>&1 & 

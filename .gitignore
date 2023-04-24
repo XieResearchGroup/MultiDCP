@@ -9,7 +9,8 @@ __pycache__/*
 *.mat
 *.bmp
 *.html
-*.pt
+saved_models/*
+MultiDCP/Code_AE_trained_encoders/*
 *.pdf
 MultiDCP/output/*
 MultiDCP/data/*
