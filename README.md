@@ -48,6 +48,7 @@ zenodo_get 10.5281/zenodo.5172809
 cd multidcp MultiDCP/script
 ./train_multidcp_ae.sh
 ```
-
+# Cite the paper 
+Citation: Wu Y, Liu Q, Qiu Y, Xie L (2022) Deep learning prediction of chemical-induced dose-dependent and context-specific multiplex phenotype responses and its application to personalized alzheimer’s disease drug repurposing. PLoS Comput Biol 18(8): e1010367. https://doi.org/10.1371/journal.pcbi.1010367
 
 
