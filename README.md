@@ -43,11 +43,60 @@ pip install zenodo-get
 zenodo_get 10.5281/zenodo.5172809
 ```
 
-2. 
+2. Train the model
 ```
-cd multidcp MultiDCP/script
+cd MultiDCP/script
 ./train_multidcp_ae.sh
 ```
+
+# Making Predictions
+
+Once the model is trained, you can use it to predict gene expression changes for new compounds on specific cell lines.
+
+## Example: Predicting Food Molecule Effects on MCF7 Cells
+
+We provide an example script that demonstrates how to predict the transcriptomic effects of food molecules on the MCF7 cell line:
+
+```bash
+python predict_food_molecules_mcf7.py
+```
+
+This script will:
+- Load the trained MultiDCP model
+- Process food molecule structures (SMILES format)
+- Predict differential gene expression for 978 landmark genes
+- Save predictions to `MultiDCP_data/predictions/`
+
+### Prediction Output Format
+
+The raw predictions contain generic column names (`gene_0`, `gene_1`, ..., `gene_977`). To convert these to actual gene names (e.g., DDR1, PAX8, RPS5), use the provided utility script:
+
+```bash
+python add_gene_names_to_predictions.py
+```
+
+This creates a more interpretable output file with columns:
+- **Metadata columns**: `inchikey`, `compound_name`, `smiles`, `cell_line`, `dosage`
+- **Gene expression columns**: `DDR1`, `PAX8`, `RPS5`, ..., `NPEPL1` (978 genes total)
+
+**Example output structure:**
+```
+MultiDCP_data/predictions/
+├── food_molecules_mcf7_predictions.csv              # Raw predictions with gene_0, gene_1, ...
+└── food_molecules_mcf7_predictions_with_gene_names.csv  # Human-readable gene names
+```
+
+### Customizing Predictions
+
+To predict effects for your own compounds:
+
+1. Prepare a CSV file with compound information (InChIKey, name, SMILES)
+2. Modify the prediction script to load your compounds
+3. Specify the target cell line and dosage
+4. Run the prediction script
+5. Use `add_gene_names_to_predictions.py` to add gene names
+
+The 978 landmark genes predicted by MultiDCP are defined in `data/gene_vector.csv`.
 
 
 
