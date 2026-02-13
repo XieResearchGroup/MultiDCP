@@ -98,5 +98,7 @@ To predict effects for your own compounds:
 
 The 978 landmark genes predicted by MultiDCP are defined in `data/gene_vector.csv`.
 
+# Cite the paper 
+Citation: Wu Y, Liu Q, Qiu Y, Xie L (2022) Deep learning prediction of chemical-induced dose-dependent and context-specific multiplex phenotype responses and its application to personalized alzheimer’s disease drug repurposing. PLoS Comput Biol 18(8): e1010367. https://doi.org/10.1371/journal.pcbi.1010367
 
 
